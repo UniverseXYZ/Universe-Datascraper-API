@@ -1,0 +1,67 @@
+@hostname = http://localhost:8080
+
+@contractAddress = 0xCcc441ac31f02cD96C153DB6fd5Fe0a2F4e6A68d
+@tokenId = 8712
+@userAddress = 0x176C4cfc1ba5aAe04f514855526B79560BeFDe26
+
+### get tokens
+GET {{hostname}}/v1/tokens
+
+### get the first page of tokens (default page size is 10)
+GET {{hostname}}/v1/tokens?page=1
+
+### get the first page of tokens with page size of 3
+GET {{hostname}}/v1/tokens?page=1&size=3
+
+### get token by contract address and token id
+GET {{hostname}}/v1/tokens/{{contractAddress}}/{{tokenId}}
+
+### hard refresh token metadata
+PUT {{hostname}}/v1/tokens/refresh
+Content-Type: application/json
+
+{
+  "contractAddress": "0xCcc441ac31f02cD96C153DB6fd5Fe0a2F4e6A68d",
+  "tokenId": "8710"
+}
+
+
+### Get tokens by collection (default page number is 0 and page size is 10)
+GET {{hostname}}/v1/collections/{{contractAddress}}/tokens
+
+### Get the first page of tokens by collection (default page size is 10)
+GET {{hostname}}/v1/collections/{{contractAddress}}/tokens?page=1
+
+### Get the first page of tokens by collection
+GET {{hostname}}/v1/collections/{{contractAddress}}/tokens?page=1&size=3
+
+
+### Get transfers by token (default page number is 0 and page size is 10)
+GET {{hostname}}/v1/transfers/{{contractAddress}}/{{tokenId}}
+
+
+### Get the first page of the token's transfers (default page size is 10)
+GET {{hostname}}/v1/transfers/{{contractAddress}}/{{tokenId}}?page=1
+
+
+### Get the first page of the token's transfers with page size of 3
+GET {{hostname}}/v1/transfers/{{contractAddress}}/{{tokenId}}?page=1&size=3
+
+### Get User's NFTs
+GET {{hostname}}/v1/users/{{userAddress}}/tokens
+
+### Get User's NFTs (the first page)
+GET {{hostname}}/v1/users/{{userAddress}}/tokens?page=1
+
+### Get User's NFTs (the first page with page size of 3)
+GET {{hostname}}/v1/users/{{userAddress}}/tokens?page=1&size=3
+
+
+### Get User's transfers
+GET {{hostname}}/v1/users/{{userAddress}}/transfers
+
+### Get User's transfers (the first page)
+GET {{hostname}}/v1/users/{{userAddress}}/transfers?page=1
+
+### Get User's transfers (the first page with page size of 3)
+GET {{hostname}}/v1/users/{{userAddress}}/transfers?page=1&size=3
