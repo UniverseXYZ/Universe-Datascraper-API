@@ -15,6 +15,15 @@ export class NFTCollectionController {
   ) {
     const pageNum: number = page ? Number(page) - 1 : 0;
     const limit: number = size ? Number(size) : 10;
-    return this.nftTokenService.getTokensByContract(contract, pageNum, limit);
+    const [tokens, count] = await Promise.all([
+      this.nftTokenService.getTokensByContract(contract, pageNum, limit),
+      this.nftTokenService.getCountByContract(contract),
+    ]);
+    return {
+      page: pageNum,
+      size: limit,
+      total: count,
+      data: tokens,
+    };
   }
 }

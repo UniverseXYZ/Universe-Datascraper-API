@@ -17,6 +17,10 @@ export class NFTTokenService {
       .limit(limit);
   }
 
+  async getCount(): Promise<number> {
+    return await this.nftTokensModel.count();
+  }
+
   async getTokensByOwner(
     ownerAddress: string,
     page: number,
@@ -26,6 +30,12 @@ export class NFTTokenService {
       .find({ owners: { $elemMatch: { address: ownerAddress } } })
       .skip(page * limit)
       .limit(limit);
+  }
+
+  async getCountByOwner(ownerAddress: string): Promise<number> {
+    return await this.nftTokensModel.count({
+      owners: { $elemMatch: { address: ownerAddress } },
+    });
   }
 
   async getToken(
@@ -47,6 +57,10 @@ export class NFTTokenService {
       .find({ contractAddress })
       .skip(page * limit)
       .limit(limit);
+  }
+
+  async getCountByContract(contractAddress: string): Promise<number> {
+    return await this.nftTokensModel.count({ contractAddress });
   }
 
   async refreshTokenData(contractAddress: string, tokenId: string) {
