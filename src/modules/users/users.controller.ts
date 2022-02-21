@@ -20,7 +20,16 @@ export class UsersController {
   ) {
     const pageNum: number = query.page ? query.page - 1 : 0;
     const limit: number = query.size ? query.size : 10;
-    return this.service.getTokensByOwner(ownerDto.owner, pageNum, limit);
+    const [tokens, count] = await Promise.all([
+      this.service.getTokensByOwner(ownerDto.owner, pageNum, limit),
+      this.service.getCountByOwner(ownerDto.owner),
+    ]);
+    return {
+      page: pageNum,
+      size: limit,
+      total: count,
+      data: tokens,
+    };
   }
 
   @Get(':owner/transfers')
@@ -30,10 +39,19 @@ export class UsersController {
   ) {
     const pageNum: number = query.page ? query.page - 1 : 0;
     const limit: number = query.size ? query.size : 10;
-    return this.transferService.getTransferByUserAddress(
-      ownerDto.owner,
-      pageNum,
-      limit,
-    );
+    const [transfers, count] = await Promise.all([
+      this.transferService.getTransferByUserAddress(
+        ownerDto.owner,
+        pageNum,
+        limit,
+      ),
+      this.transferService.getCountByUserAddress(ownerDto.owner),
+    ]);
+    return {
+      page: pageNum,
+      size: limit,
+      total: count,
+      data: transfers,
+    };
   }
 }

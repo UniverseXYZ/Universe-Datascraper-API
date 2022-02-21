@@ -16,11 +16,20 @@ export class NFTTransferController {
   ) {
     const pageNum: number = query.page ? query.page - 1 : 0;
     const limit: number = query.size ? query.size : 10;
-    return this.service.getTransferByTokenId(
-      param.contract,
-      param.tokenId,
-      pageNum,
-      limit,
-    );
+    const [transfers, count] = await Promise.all([
+      this.service.getTransferByTokenId(
+        param.contract,
+        param.tokenId,
+        pageNum,
+        limit,
+      ),
+      this.service.getCountByTokenId(param.contract, param.tokenId),
+    ]);
+    return {
+      page: pageNum,
+      size: limit,
+      total: count,
+      data: transfers,
+    };
   }
 }

@@ -25,6 +25,13 @@ export class NFTTransferService {
       .limit(limit);
   }
 
+  async getCountByTokenId(
+    contractAddress: string,
+    tokenId: string,
+  ): Promise<number> {
+    return await this.nftTransferModel.count({ contractAddress, tokenId });
+  }
+
   async getTransferByUserAddress(
     userAddress: string,
     page: number,
@@ -35,5 +42,11 @@ export class NFTTransferService {
       .sort({ createdAt: -1 })
       .skip(page * limit)
       .limit(limit);
+  }
+
+  async getCountByUserAddress(userAddress: string): Promise<number> {
+    return await this.nftTransferModel.count({
+      $or: [{ to: userAddress }, { from: userAddress }],
+    });
   }
 }

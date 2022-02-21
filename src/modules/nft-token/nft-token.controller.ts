@@ -22,7 +22,16 @@ export class NFTTokenController {
   async getTokens(@Query() query: PaginationDto) {
     const pageNum: number = query.page ? query.page - 1 : 0;
     const limit: number = query.size ? query.size : 10;
-    return this.service.getTokens(pageNum, limit);
+    const [tokens, count] = await Promise.all([
+      this.service.getTokens(pageNum, limit),
+      this.service.getCount(),
+    ]);
+    return {
+      page: pageNum,
+      size: limit,
+      total: count,
+      data: tokens,
+    };
   }
 
   @Get(':contract/:tokenId')
