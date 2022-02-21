@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
+import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
+
 
 @Injectable()
 export class NFTTokenService {
@@ -23,19 +25,42 @@ export class NFTTokenService {
 
   async getTokensByOwner(
     ownerAddress: string,
+    searchQuery: GetUserTokensDto,
     page: number,
     limit: number,
   ): Promise<NFTTokensDocument[]> {
+    const query = {} as any;
+
+    if (ownerAddress) {
+      query.owners = {
+        $elemMatch: {address: ownerAddress}
+      };
+    }
+
+    if (searchQuery?.tokenType) {
+      query.tokenType = searchQuery.tokenType;
+    }
+
     return await this.nftTokensModel
-      .find({ owners: { $elemMatch: { address: ownerAddress } } })
+      .find({...query})
       .skip(page * limit)
       .limit(limit);
   }
 
-  async getCountByOwner(ownerAddress: string): Promise<number> {
-    return await this.nftTokensModel.count({
-      owners: { $elemMatch: { address: ownerAddress } },
-    });
+  async getCountByOwner(ownerAddress: string, searchQuery: GetUserTokensDto): Promise<number> {
+    const query = {} as any;
+
+    if (ownerAddress) {
+      query.owners = {
+        $elemMatch: {address: ownerAddress}
+      };
+    }
+
+    if (searchQuery?.tokenType) {
+      query.tokenType = searchQuery.tokenType;
+    }
+
+    return await this.nftTokensModel.count({...query});
   }
 
   async getToken(
