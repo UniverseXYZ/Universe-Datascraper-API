@@ -7,4 +7,11 @@ export class GetUserTokensDto {
     type: String,
   })
   public readonly tokenType: string;
+
+  @ApiProperty({
+    description: 'Token Address',
+    required: false,
+    type: String,
+  })
+  public readonly tokenAddress: string;
 }
