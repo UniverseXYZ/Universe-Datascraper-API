@@ -41,6 +41,10 @@ export class NFTTokenService {
       query.tokenType = searchQuery.tokenType;
     }
 
+    if (searchQuery?.tokenAddress) {
+      query.contractAddress = searchQuery.tokenAddress;
+    }
+
     return await this.nftTokensModel
       .find({...query})
       .skip(page * limit)
@@ -58,6 +62,10 @@ export class NFTTokenService {
 
     if (searchQuery?.tokenType) {
       query.tokenType = searchQuery.tokenType;
+    }
+
+    if (searchQuery?.tokenAddress) {
+      query.contractAddress = searchQuery.tokenAddress;
     }
 
     return await this.nftTokensModel.count({...query});
