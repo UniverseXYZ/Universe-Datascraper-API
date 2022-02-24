@@ -1,11 +1,15 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { NFTTokenService } from '../nft-token/nft-token.service';
+import { NFTCollectionService } from './nft-collection.service';
 
 @Controller('collections')
 @ApiTags('Collections')
 export class NFTCollectionController {
-  constructor(private nftTokenService: NFTTokenService) {}
+  constructor(
+    private nftTokenService: NFTTokenService,
+    private nftCollectionService: NFTCollectionService,
+  ) {}
 
   @Get(':contract/tokens')
   async getToken(
@@ -30,5 +34,10 @@ export class NFTCollectionController {
   @Get(':owner')
   async getUserCollections(@Param('owner') address: string) {
     return this.nftTokenService.getUserCollections(address);
+  }
+
+  @Get('search')
+  async search(@Query('search') search) {
+    return this.nftCollectionService.searchCollections(search);
   }
 }
