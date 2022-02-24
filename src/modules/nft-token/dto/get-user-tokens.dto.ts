@@ -14,4 +14,11 @@ export class GetUserTokensDto {
     type: String,
   })
   public readonly tokenAddress: string;
+
+  @ApiProperty({
+    description: 'Search keyword',
+    required: false,
+    type: String,
+  })
+  public readonly search: string;
 }

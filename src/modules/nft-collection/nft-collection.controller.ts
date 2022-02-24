@@ -26,4 +26,9 @@ export class NFTCollectionController {
       data: tokens,
     };
   }
+
+  @Get(':owner')
+  async getUserCollections(@Param('owner') address: string) {
+    return this.nftTokenService.getUserCollections(address);
+  }
 }
