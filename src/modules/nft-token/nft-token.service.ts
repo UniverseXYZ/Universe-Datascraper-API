@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
 
-
 @Injectable()
 export class NFTTokenService {
   constructor(
@@ -33,7 +32,7 @@ export class NFTTokenService {
 
     if (ownerAddress) {
       query.owners = {
-        $elemMatch: {address: ownerAddress}
+        $elemMatch: { address: ownerAddress },
       };
     }
 
@@ -45,18 +44,26 @@ export class NFTTokenService {
       query.contractAddress = searchQuery.tokenAddress;
     }
 
+    if (searchQuery?.search) {
+      query['metadata.name'] = { $regex: searchQuery.search };
+    }
+    console.log(query);
+
     return await this.nftTokensModel
-      .find({...query})
+      .find({ ...query })
       .skip(page * limit)
       .limit(limit);
   }
 
-  async getCountByOwner(ownerAddress: string, searchQuery: GetUserTokensDto): Promise<number> {
+  async getCountByOwner(
+    ownerAddress: string,
+    searchQuery: GetUserTokensDto,
+  ): Promise<number> {
     const query = {} as any;
 
     if (ownerAddress) {
       query.owners = {
-        $elemMatch: {address: ownerAddress}
+        $elemMatch: { address: ownerAddress },
       };
     }
 
@@ -68,7 +75,7 @@ export class NFTTokenService {
       query.contractAddress = searchQuery.tokenAddress;
     }
 
-    return await this.nftTokensModel.count({...query});
+    return await this.nftTokensModel.count({ ...query });
   }
 
   async getToken(
@@ -94,6 +101,14 @@ export class NFTTokenService {
 
   async getCountByContract(contractAddress: string): Promise<number> {
     return await this.nftTokensModel.count({ contractAddress });
+  }
+
+  async getUserCollections(address: string) {
+    return await this.nftTokensModel.distinct('contractAddress', {
+      owners: {
+        $elemMatch: { address: address },
+      },
+    });
   }
 
   async refreshTokenData(contractAddress: string, tokenId: string) {

@@ -24,7 +24,12 @@ export class UsersController {
     const limit: number = paginationQuery.size ? paginationQuery.size : 10;
 
     const [tokens, count] = await Promise.all([
-      this.service.getTokensByOwner(ownerDto.owner, searchQuery, pageNum, limit),
+      this.service.getTokensByOwner(
+        ownerDto.owner,
+        searchQuery,
+        pageNum,
+        limit,
+      ),
       this.service.getCountByOwner(ownerDto.owner, searchQuery),
     ]);
     return {
