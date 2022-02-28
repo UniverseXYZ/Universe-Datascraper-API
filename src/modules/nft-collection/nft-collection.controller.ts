@@ -31,7 +31,7 @@ export class NFTCollectionController {
     };
   }
 
-  @Get(':owner')
+  @Get('user/:owner')
   async getUserCollections(@Param('owner') address: string) {
     return this.nftTokenService.getUserCollections(address);
   }
