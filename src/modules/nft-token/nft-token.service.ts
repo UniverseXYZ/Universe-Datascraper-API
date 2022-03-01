@@ -47,7 +47,6 @@ export class NFTTokenService {
     if (searchQuery?.search) {
       query['metadata.name'] = { $regex: searchQuery.search };
     }
-    console.log(query);
 
     return await this.nftTokensModel
       .find({ ...query })
