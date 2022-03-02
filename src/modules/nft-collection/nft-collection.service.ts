@@ -13,6 +13,21 @@ export class NFTCollectionService {
     private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
   ) {}
 
+  public async getCollectionsByAddress(
+    collections: string[],
+  ): Promise<NFTCollectionDocument[]> {
+    return await this.nftCollectionsModel.find(
+      {
+        contractAddress: { $in: collections },
+      },
+      {
+        contractAddress: 1,
+        name: 1,
+        _id: 0,
+      },
+    );
+  }
+
   public async searchCollections(
     search: string,
   ): Promise<NFTCollectionDocument[]> {
