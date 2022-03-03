@@ -33,7 +33,9 @@ export class NFTCollectionController {
 
   @Get('user/:owner')
   async getUserCollections(@Param('owner') address: string) {
-    return this.nftTokenService.getUserCollections(address);
+    const collections = await this.nftTokenService.getUserCollections(address);
+
+    return this.nftCollectionService.getCollectionsByAddress(collections);
   }
 
   @Get('search')
