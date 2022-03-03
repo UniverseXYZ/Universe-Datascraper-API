@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTCollectionService } from './nft-collection.service';
 
@@ -29,6 +29,22 @@ export class NFTCollectionController {
       total: count,
       data: tokens,
     };
+  }
+
+  @Get(':contract/more')
+  @ApiOperation({
+    summary: 'Fetch max 4 random nfts from the collection',
+  })
+  async getMoreFromCollection(
+    @Param('contract') contract: string,
+    @Query('maxCount') maxCount: number,
+    @Query('excludeTokenId') excludeTokenId: string,
+  ) {
+    return this.nftTokenService.getMoreFromCollection(
+      contract,
+      excludeTokenId,
+      maxCount,
+    );
   }
 
   @Get('user/:owner')
