@@ -113,6 +113,10 @@ export class NFTTokenService {
       query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
     }
 
+    if (searchQuery?.search) {
+      query['metadata.name'] = { $regex: searchQuery.search };
+    }
+
     return await this.nftTokensModel.count({ ...query });
   }
 
