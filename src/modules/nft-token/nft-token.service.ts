@@ -27,8 +27,14 @@ export class NFTTokenService {
   async getMoreFromCollection(
     contract: string,
     excludeTokenId: string,
+    maxCount: number,
   ): Promise<NFTTokensDocument[]> {
-    const maxCount = 4;
+    const limit = 20;
+
+    if (maxCount > limit) {
+      maxCount = limit;
+    }
+
     const checkSumAddress = utils.getAddress(contract);
     const totalCount = await this.nftTokensModel
       .find({ contractAddress: checkSumAddress })

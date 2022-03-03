@@ -37,9 +37,14 @@ export class NFTCollectionController {
   })
   async getMoreFromCollection(
     @Param('contract') contract: string,
+    @Query('maxCount') maxCount: number,
     @Query('excludeTokenId') excludeTokenId: string,
   ) {
-    return this.nftTokenService.getMoreFromCollection(contract, excludeTokenId);
+    return this.nftTokenService.getMoreFromCollection(
+      contract,
+      excludeTokenId,
+      maxCount,
+    );
   }
 
   @Get('user/:owner')
