@@ -29,17 +29,18 @@ export class NFTTokenService {
     excludeTokenId: string,
   ): Promise<NFTTokensDocument[]> {
     const maxCount = 4;
+    const checkSumAddress = utils.getAddress(contract);
     const totalCount = await this.nftTokensModel
-      .find({ contractAddress: contract })
+      .find({ contractAddress: checkSumAddress })
       .count();
 
     const upperMax = totalCount - maxCount;
     const max = upperMax >= 0 ? upperMax : 0;
     const randomNumber = this.getRandomInt(0, max);
 
-    const query = { contractAddress: utils.getAddress(contract) } as any;
+    const query = { contractAddress: checkSumAddress } as any;
     if (excludeTokenId) {
-      query.tokenId = { $not: { $eq: excludeTokenId } };
+      query.tokenId = { $not: { $regex: excludeTokenId } };
     }
 
     const results = await this.nftTokensModel
