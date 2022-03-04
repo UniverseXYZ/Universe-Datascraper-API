@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
 import { utils } from 'ethers';
+
 @Injectable()
 export class NFTTokenService {
   constructor(

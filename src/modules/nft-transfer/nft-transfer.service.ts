@@ -5,6 +5,7 @@ import {
   NFTTransferHistory,
   NFTTransferHistoryDocument,
 } from './schema/nft-transfer.schema';
+import { utils } from 'ethers';
 
 @Injectable()
 export class NFTTransferService {
@@ -48,5 +49,20 @@ export class NFTTransferService {
     return await this.nftTransferModel.count({
       $or: [{ to: userAddress }, { from: userAddress }],
     });
+  }
+
+
+  /**
+   * Returns total number of owners who owns at least 1 token in collection.
+   * @param contractAddress - collection address.
+   * @returns {Promise<number>}
+   */
+   public async getCollectionOwnersCount(contractAddress: string): Promise<number> {
+    
+    const owners = await this.nftTransferModel.distinct('to', {
+      contractAddress: utils.getAddress(contractAddress)
+    });
+
+    return owners.length;
   }
 }
