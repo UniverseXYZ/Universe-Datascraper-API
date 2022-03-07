@@ -5,12 +5,14 @@ import {
   NFTCollection,
   NFTCollectionDocument,
 } from './schema/nft-collection.schema';
+import { NFTTransferService } from '../nft-transfer/nft-transfer.service';
 
 @Injectable()
 export class NFTCollectionService {
   constructor(
     @InjectModel(NFTCollection.name)
     private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
+    private nftTransferService: NFTTransferService,
   ) {}
 
   public async getCollectionsByAddress(
@@ -37,4 +39,16 @@ export class NFTCollectionService {
 
     return collection;
   }
+
+  /**
+   * Returns certain data points for a single collection.
+   * @param contract - contract (collection) address
+   * @returns {Object}
+   */
+  public async getCollection(contractAddress: string) {
+    return {
+      owners: await this.nftTransferService.getCollectionOwnersCount(contractAddress),
+    }
+  }
+
 }

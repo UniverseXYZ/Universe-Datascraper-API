@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ContractAddressDto } from 'src/common/dto';
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTCollectionService } from './nft-collection.service';
 
@@ -10,6 +11,14 @@ export class NFTCollectionController {
     private nftTokenService: NFTTokenService,
     private nftCollectionService: NFTCollectionService,
   ) {}
+
+  @Get(':contract')
+  @ApiOperation({
+    summary: 'Get collection data.',
+  })
+  async getCollection(@Param() params: ContractAddressDto) {
+    return await this.nftCollectionService.getCollection(params.contract);
+  }
 
   @Get(':contract/tokens')
   async getToken(

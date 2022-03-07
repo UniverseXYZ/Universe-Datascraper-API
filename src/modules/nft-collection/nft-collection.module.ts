@@ -5,8 +5,11 @@ import {
   NFTCollectionSchema,
   NFTToken,
   NFTTokensSchema,
+  NFTTransferHistory,
+  NFTTransferHistorySchema,
 } from 'datascraper-schema';
 import { NFTTokenService } from '../nft-token/nft-token.service';
+import { NFTTransferService } from '../nft-transfer/nft-transfer.service';
 import { NFTCollectionController } from './nft-collection.controller';
 import { NFTCollectionService } from './nft-collection.service';
 
@@ -18,8 +21,11 @@ import { NFTCollectionService } from './nft-collection.service';
     MongooseModule.forFeature([
       { name: NFTToken.name, schema: NFTTokensSchema },
     ]),
+    MongooseModule.forFeature([
+      { name: NFTTransferHistory.name, schema: NFTTransferHistorySchema },
+    ]),
   ],
   controllers: [NFTCollectionController],
-  providers: [NFTCollectionService, NFTTokenService],
+  providers: [NFTCollectionService, NFTTokenService, NFTTransferService],
 })
 export class NFTCollectionModule {}
