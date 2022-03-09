@@ -69,11 +69,8 @@ export class NFTTokenService {
     limit: number,
   ): Promise<NFTTokensDocument[]> {
     const query = {} as any;
-
     if (ownerAddress) {
-      query.owners = {
-        $elemMatch: { address: ownerAddress },
-      };
+      query['owners.address'] = ownerAddress;
     }
 
     if (searchQuery?.tokenType) {
@@ -101,9 +98,7 @@ export class NFTTokenService {
     const query = {} as any;
 
     if (ownerAddress) {
-      query.owners = {
-        $elemMatch: { address: ownerAddress },
-      };
+      query['owners.address'] = ownerAddress;
     }
 
     if (searchQuery?.tokenType) {
@@ -150,9 +145,7 @@ export class NFTTokenService {
 
   async getUserCollections(address: string) {
     return await this.nftTokensModel.distinct('contractAddress', {
-      owners: {
-        $elemMatch: { address: utils.getAddress(address) },
-      },
+        'owners.address': utils.getAddress(address)
     });
   }
 
