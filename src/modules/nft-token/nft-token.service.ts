@@ -145,8 +145,7 @@ export class NFTTokenService {
 
   async getUserCollections(address: string) {
     return await this.nftTokensModel.distinct('contractAddress', {
-        'owners.address': utils.getAddress(address) 
-      },
+        'owners.address': utils.getAddress(address)
     });
   }
 
