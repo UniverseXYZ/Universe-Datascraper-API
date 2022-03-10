@@ -130,22 +130,36 @@ export class NFTTokenService {
     contractAddress: string,
     page: number,
     limit: number,
+    search: string,
   ): Promise<NFTTokensDocument[]> {
+    const find = {} as any;
+    find.contractAddress = utils.getAddress(contractAddress);
+    if (search) {
+      find['metadata.name'] = { $regex: search };
+    }
+
     return await this.nftTokensModel
-      .find({ contractAddress: utils.getAddress(contractAddress) })
+      .find(find)
       .skip(page * limit)
       .limit(limit);
   }
 
-  async getCountByContract(contractAddress: string): Promise<number> {
-    return await this.nftTokensModel.count({
-      contractAddress: utils.getAddress(contractAddress),
-    });
+  async getCountByContract(
+    contractAddress: string,
+    search: string,
+  ): Promise<number> {
+    const find = {} as any;
+    find.contractAddress = utils.getAddress(contractAddress);
+    if (search) {
+      find['metadata.name'] = { $regex: search };
+    }
+
+    return await this.nftTokensModel.count(find);
   }
 
   async getUserCollections(address: string) {
     return await this.nftTokensModel.distinct('contractAddress', {
-        'owners.address': utils.getAddress(address)
+      'owners.address': utils.getAddress(address),
     });
   }
 

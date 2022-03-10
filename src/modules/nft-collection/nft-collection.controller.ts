@@ -25,12 +25,18 @@ export class NFTCollectionController {
     @Param('contract') contract,
     @Query('page') page,
     @Query('size') size,
+    @Query('search') search,
   ) {
     const pageNum: number = page ? Number(page) - 1 : 0;
     const limit: number = size ? Number(size) : 10;
     const [tokens, count] = await Promise.all([
-      this.nftTokenService.getTokensByContract(contract, pageNum, limit),
-      this.nftTokenService.getCountByContract(contract),
+      this.nftTokenService.getTokensByContract(
+        contract,
+        pageNum,
+        limit,
+        search,
+      ),
+      this.nftTokenService.getCountByContract(contract, search),
     ]);
     return {
       page: pageNum,
