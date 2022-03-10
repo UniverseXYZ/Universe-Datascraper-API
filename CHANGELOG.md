@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.0.0...v1.1.0) (2022-03-10)
+
+
+### Features
+
+* **collections:** Search nft in a collection ([ce7f80a](https://github.com/UniverseXYZ/Universe-Datascraper-API/commit/ce7f80a7f75293734609f6422b4ef4910d20e534))
+
 # 1.0.0 (2022-03-09)
 
 
