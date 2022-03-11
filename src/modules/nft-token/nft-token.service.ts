@@ -182,4 +182,58 @@ export class NFTTokenService {
     });
     return await this.nftTokensModel.find({ $or: query });
   }
+
+  /**
+   * Returns total number of owners who owns at least 1 token in collection.
+   * @param contractAddress - collection address.
+   * @returns {Promise<number>}
+   */
+  public async getCollectionOwnersCount(
+    contractAddress: string,
+  ): Promise<number> {
+    let value = 0;
+
+    /**
+     * I left this distinct() call commented out to be able to quickly compare the results between
+     * the .distinct() and the .aggregate() approaches.
+     * But eventually I went with the .aggregate() method because the resulting array from
+     * .distinct() might be pretty large (consider a collection with 10^18 tokens and each
+     * token is owned by a unique address) but it must not be larger than the maximum BSON size (16MB).
+     * @See https://docs.mongodb.com/manual/reference/limits/
+     */
+    // const uniqueOwners = await this.nftTokensModel.distinct('owners.address', {
+    //   contractAddress: contractAddress,
+    // });
+    // value = uniqueOwners.length;
+
+    const owners = await this.nftTokensModel.aggregate([
+      {
+        $match: {
+          contractAddress: contractAddress,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          uniqueOwners: {
+            $addToSet: {
+              owner: '$owners.address',
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          count: {
+            $size: '$uniqueOwners',
+          },
+        },
+      },
+    ]);
+    if (owners.length > 0 && owners[0].count) {
+      value = owners[0].count;
+    }
+
+    return value;
+  }
 }

@@ -5,7 +5,7 @@ import {
   NFTCollection,
   NFTCollectionDocument,
 } from './schema/nft-collection.schema';
-import { NFTTransferService } from '../nft-transfer/nft-transfer.service';
+import { NFTTokenService } from '../nft-token/nft-token.service';
 import { utils } from 'ethers';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class NFTCollectionService {
   constructor(
     @InjectModel(NFTCollection.name)
     private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
-    private nftTransferService: NFTTransferService,
+    private readonly nftTokenService: NFTTokenService,
   ) {}
 
   public async getCollectionsByAddress(
@@ -58,7 +58,7 @@ export class NFTCollectionService {
       // TODO:: if there is no such collection return 404
     }
 
-    const ownersCount = await this.nftTransferService.getCollectionOwnersCount(
+    const ownersCount = await this.nftTokenService.getCollectionOwnersCount(
       checkedAddress,
     );
 
