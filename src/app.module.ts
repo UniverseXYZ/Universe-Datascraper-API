@@ -10,6 +10,7 @@ import { NFTTokenModule } from './modules/nft-token/nft-token.module';
 import { NFTCollectionModule } from './modules/nft-collection/nft-collection.module';
 import { NFTTransferModule } from './modules/nft-transfer/nft-transfer.module';
 import { UsersModule } from './modules/users/users.module';
+import { NFTTokenOwnersModule } from './modules/nft-token-owners/nft-token-owners.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { UsersModule } from './modules/users/users.module';
     NFTCollectionModule,
     NFTTransferModule,
     UsersModule,
+    NFTTokenOwnersModule,
   ],
   controllers: [],
   providers: [],
