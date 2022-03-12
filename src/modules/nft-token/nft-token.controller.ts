@@ -9,6 +9,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ethers } from 'ethers';
+import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { GetSingleTokenDto } from './dto/get-single-token.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { NFTTokenService } from './nft-token.service';
@@ -16,7 +18,10 @@ import { NFTTokenService } from './nft-token.service';
 @Controller('tokens')
 @ApiTags('Tokens')
 export class NFTTokenController {
-  constructor(private service: NFTTokenService) {}
+  constructor(
+    private service: NFTTokenService,
+    private nftTokenOwnersService: NFTTokenOwnersService,
+  ) {}
 
   @Get()
   async getTokens(@Query() query: PaginationDto) {
@@ -26,17 +31,63 @@ export class NFTTokenController {
       this.service.getTokens(pageNum, limit),
       this.service.getCount(),
     ]);
+    const tokenOwners = await this.nftTokenOwnersService.getOwnersByTokens(
+      tokens,
+    );
+    const data = tokens.map((token) => {
+      const ownersInfo = tokenOwners.filter(
+        (owner) =>
+          owner.contractAddress === token.contractAddress &&
+          owner.tokenId === token.tokenId,
+      );
+      const ownerAddresses = ownersInfo.map((owner) => ({
+        owner: owner.address,
+        value: owner.value
+          ? owner.value.toString()
+          : ethers.BigNumber.from(owner.value).toString(),
+      }));
+      console.log(ownerAddresses);
+      return {
+        contractAddress: token.contractAddress,
+        tokenId: token.tokenId,
+        tokenType: token.tokenType,
+        metadata: token.metadata,
+        externalDomainViewUrl: token.externalDomainViewUrl,
+        alternativeMediaFiles: token.alternativeMediaFiles,
+        owners: [...ownerAddresses],
+      };
+    });
+
     return {
       page: pageNum,
       size: limit,
       total: count,
-      data: tokens,
+      data,
     };
   }
 
   @Get(':contract/:tokenId')
   async getToken(@Param() param: GetSingleTokenDto) {
-    return this.service.getToken(param.contract, param.tokenId);
+    const [token, tokenOwners] = await Promise.all([
+      this.service.getToken(param.contract, param.tokenId),
+      this.nftTokenOwnersService.getOwnersByContractAndTokenId(
+        param.contract,
+        param.tokenId,
+      ),
+    ]);
+    const ownerAddresses = tokenOwners.map((owner) => ({
+      owner: owner.address,
+      value: owner.value,
+    }));
+    return {
+      contractAddress: token.contractAddress,
+      tokenId: token.tokenId,
+      tokenType: token.tokenType,
+      metadata: token.metadata,
+      externalDomainViewUrl: token.externalDomainViewUrl,
+      alternativeMediaFiles: token.alternativeMediaFiles,
+      owners: [...ownerAddresses],
+    };
   }
 
   @Put('refresh')

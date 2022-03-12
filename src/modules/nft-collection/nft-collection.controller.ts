@@ -1,6 +1,8 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ethers } from 'ethers';
 import { ContractAddressDto } from 'src/common/dto';
+import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTCollectionService } from './nft-collection.service';
 
@@ -10,6 +12,7 @@ export class NFTCollectionController {
   constructor(
     private nftTokenService: NFTTokenService,
     private nftCollectionService: NFTCollectionService,
+    private nftTokenOwnersService: NFTTokenOwnersService,
   ) {}
 
   @Get(':contract')
@@ -38,11 +41,37 @@ export class NFTCollectionController {
       ),
       this.nftTokenService.getCountByContract(contract, search),
     ]);
+
+    const owners = await this.nftTokenOwnersService.getOwnersByTokens(tokens);
+
+    const data = tokens.map((token) => {
+      const ownersInfo = owners.filter(
+        (owner) =>
+          owner.contractAddress === token.contractAddress &&
+          owner.tokenId === token.tokenId,
+      );
+      const ownerAddresses = ownersInfo.map((owner) => ({
+        owner: owner.address,
+        value: owner.value
+          ? owner.value.toString()
+          : ethers.BigNumber.from(owner.value).toString(),
+      }));
+      return {
+        contractAddress: token.contractAddress,
+        tokenId: token.tokenId,
+        tokenType: token.tokenType,
+        metadata: token.metadata,
+        externalDomainViewUrl: token.externalDomainViewUrl,
+        alternativeMediaFiles: token.alternativeMediaFiles,
+        owners: [...ownerAddresses],
+      };
+    });
+
     return {
       page: pageNum,
       size: limit,
       total: count,
-      data: tokens,
+      data,
     };
   }
 

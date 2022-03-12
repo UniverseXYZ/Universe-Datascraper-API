@@ -12,7 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const config = app.get<ConfigService>(ConfigService);
-  const port = config.get('PORT') || 8080;
+  const port = config.get('port') || 8080;
   const sessionSecret = config.get('session_secret');
   app.setGlobalPrefix('v1', {
     exclude: [''],
