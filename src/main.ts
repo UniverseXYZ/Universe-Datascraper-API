@@ -20,7 +20,7 @@ async function bootstrap() {
 
   // Middlewares
   app.use(helmet());
-
+  app.enableCors()
   // Swagger Documentation
   const options = new DocumentBuilder()
     .setTitle('Universe API')

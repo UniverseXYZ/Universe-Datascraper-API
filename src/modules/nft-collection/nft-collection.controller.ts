@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ethers } from 'ethers';
 import { ContractAddressDto } from 'src/common/dto';
@@ -9,6 +9,7 @@ import { NFTCollectionService } from './nft-collection.service';
 @Controller('collections')
 @ApiTags('Collections')
 export class NFTCollectionController {
+  private readonly logger = new Logger(NFTCollectionController.name)
   constructor(
     private nftTokenService: NFTTokenService,
     private nftCollectionService: NFTCollectionService,
@@ -93,8 +94,7 @@ export class NFTCollectionController {
 
   @Get('user/:owner')
   async getUserCollections(@Param('owner') address: string) {
-    const collections = await this.nftTokenService.getUserCollections(address);
-
+    const collections = await this.nftTokenOwnersService.getUserCollections(address);
     return this.nftCollectionService.getCollectionsByAddress(collections);
   }
 
