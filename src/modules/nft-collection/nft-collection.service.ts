@@ -6,6 +6,7 @@ import {
   NFTCollectionDocument,
 } from './schema/nft-collection.schema';
 import { NFTTransferService } from '../nft-transfer/nft-transfer.service';
+import { utils } from 'ethers';
 
 @Injectable()
 export class NFTCollectionService {
@@ -46,9 +47,27 @@ export class NFTCollectionService {
    * @returns {Object}
    */
   public async getCollection(contractAddress: string) {
-    return {
-      owners: await this.nftTransferService.getCollectionOwnersCount(contractAddress),
+    try {
+      const checkedAddress = utils.getAddress(contractAddress);
+      const collectionInfo = await this.getCollectionsByAddress([checkedAddress]);
+      const collection = collectionInfo[0];
+
+      if (!collection) {
+      // TODO:: if there is no such collection return 404
+      }
+
+      const ownersCount = await this.nftTransferService.getCollectionOwnersCount(checkedAddress);
+
+      return {
+        owners: ownersCount,
+        name: collection?.name || '',
+        contractAddress: collection?.contractAddress || '',
+      }
+    } catch (e) {
+      console.log(e);
+      return {}
     }
+
   }
 
 }
