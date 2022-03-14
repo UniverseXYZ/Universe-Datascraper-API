@@ -80,4 +80,10 @@ export class NFTTokenOwnersService {
     console.log(query);
     return await this.nftTokenOwnersModel.find({ $or: query });
   }
+
+  async getUserCollections(address: string) {
+    return await this.nftTokenOwnersModel.distinct('contractAddress', {
+      'address': utils.getAddress(address),
+    });
+  }
 }
