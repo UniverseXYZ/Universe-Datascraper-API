@@ -83,7 +83,7 @@ export class NFTTokenService {
     }
 
     if (searchQuery?.search) {
-      query['metadata.name'] = { $regex: searchQuery.search };
+      query['metadata.name'] = { $regex: new RegExp(searchQuery.search, 'i') };
     }
 
     return await this.nftTokensModel
@@ -111,7 +111,7 @@ export class NFTTokenService {
     }
 
     if (searchQuery?.search) {
-      query['metadata.name'] = { $regex: searchQuery.search };
+      query['metadata.name'] = { $regex: new RegExp(searchQuery.search, 'i') };
     }
 
     return await this.nftTokensModel.count({ ...query });
@@ -136,7 +136,7 @@ export class NFTTokenService {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
-      find['metadata.name'] = { $regex: search };
+      find['metadata.name'] = { $regex: new RegExp(search, 'i') };
     }
 
     return await this.nftTokensModel
@@ -152,7 +152,7 @@ export class NFTTokenService {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
-      find['metadata.name'] = { $regex: search };
+      find['metadata.name'] = { $regex: new RegExp(search, 'i') };
     }
 
     return await this.nftTokensModel.count(find);

@@ -38,7 +38,7 @@ export class NFTTokenOwnersService {
     }
 
     if (searchQuery?.search) {
-      query.tokenName = { $regex: searchQuery.search };
+      query.tokenName = { $regex: new RegExp(searchQuery.search, 'i') };
     }
 
     const [tokenOwners, count] = await Promise.all([
