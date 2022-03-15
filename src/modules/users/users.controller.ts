@@ -34,6 +34,16 @@ export class UsersController {
         pageNum,
         limit,
       );
+
+    if (!tokenOwners.length) {
+      return {
+        page: pageNum,
+        size: limit,
+        total: count,
+        data: [],
+      };
+    }
+
     const [tokens, owners] = await Promise.all([
       this.service.getTokensDetailsByTokens(tokenOwners),
       this.ownersService.getOwners(tokenOwners),

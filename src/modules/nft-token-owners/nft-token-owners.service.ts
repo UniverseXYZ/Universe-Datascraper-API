@@ -66,7 +66,7 @@ export class NFTTokenOwnersService {
       contractAddress: token.contractAddress,
       tokenId: token.tokenId,
     }));
-    console.log(query);
+
     return await this.nftTokenOwnersModel.find({ $or: query });
   }
 
@@ -77,13 +77,13 @@ export class NFTTokenOwnersService {
       contractAddress: token.contractAddress,
       tokenId: token.tokenId,
     }));
-    console.log(query);
+
     return await this.nftTokenOwnersModel.find({ $or: query });
   }
 
   async getUserCollections(address: string) {
     return await this.nftTokenOwnersModel.distinct('contractAddress', {
-      'address': utils.getAddress(address),
+      address: utils.getAddress(address),
     });
   }
 }

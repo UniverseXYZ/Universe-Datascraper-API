@@ -31,6 +31,16 @@ export class NFTTokenController {
       this.service.getTokens(pageNum, limit),
       this.service.getCount(),
     ]);
+
+    if (!tokens.length) {
+      return {
+        page: pageNum,
+        size: limit,
+        total: count,
+        data: [],
+      };
+    }
+
     const tokenOwners = await this.nftTokenOwnersService.getOwnersByTokens(
       tokens,
     );
@@ -46,7 +56,7 @@ export class NFTTokenController {
           ? owner.value.toString()
           : ethers.BigNumber.from(owner.value).toString(),
       }));
-      console.log(ownerAddresses);
+
       return {
         contractAddress: token.contractAddress,
         tokenId: token.tokenId,

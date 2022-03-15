@@ -9,7 +9,7 @@ import { NFTCollectionService } from './nft-collection.service';
 @Controller('collections')
 @ApiTags('Collections')
 export class NFTCollectionController {
-  private readonly logger = new Logger(NFTCollectionController.name)
+  private readonly logger = new Logger(NFTCollectionController.name);
   constructor(
     private nftTokenService: NFTTokenService,
     private nftCollectionService: NFTCollectionService,
@@ -42,6 +42,15 @@ export class NFTCollectionController {
       ),
       this.nftTokenService.getCountByContract(contract, search),
     ]);
+
+    if (!tokens.length) {
+      return {
+        page: pageNum,
+        size: limit,
+        total: count,
+        data: [],
+      };
+    }
 
     const owners = await this.nftTokenOwnersService.getOwnersByTokens(tokens);
 
@@ -94,7 +103,9 @@ export class NFTCollectionController {
 
   @Get('user/:owner')
   async getUserCollections(@Param('owner') address: string) {
-    const collections = await this.nftTokenOwnersService.getUserCollections(address);
+    const collections = await this.nftTokenOwnersService.getUserCollections(
+      address,
+    );
     return this.nftCollectionService.getCollectionsByAddress(collections);
   }
 
