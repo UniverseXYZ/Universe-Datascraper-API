@@ -21,7 +21,11 @@ export class NFTCollectionController {
     summary: 'Get collection data.',
   })
   async getCollection(@Param() params: ContractAddressDto) {
-    return await this.nftCollectionService.getCollection(params.contract);
+    return {
+      owners: await this.nftTokenService.getCollectionOwnersCount(
+        params.contract,
+      ),
+    };
   }
 
   @Get(':contract/tokens')
