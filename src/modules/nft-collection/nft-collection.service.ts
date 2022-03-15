@@ -47,21 +47,22 @@ export class NFTCollectionService {
    * @returns {Object}
    */
   public async getCollection(contractAddress: string) {
-      const checkedAddress = utils.getAddress(contractAddress);
-      const collectionInfo = await this.getCollectionsByAddress([checkedAddress]);
-      const collection = collectionInfo[0];
+    const checkedAddress = utils.getAddress(contractAddress);
+    const collectionInfo = await this.getCollectionsByAddress([checkedAddress]);
+    const collection = collectionInfo[0];
 
-      if (!collection) {
+    if (!collection) {
       // TODO:: if there is no such collection return 404
-      }
+    }
 
-      const ownersCount = await this.nftTransferService.getCollectionOwnersCount(checkedAddress);
+    const ownersCount = await this.nftTransferService.getCollectionOwnersCount(
+      checkedAddress,
+    );
 
-      return {
-        owners: ownersCount,
-        name: collection?.name || '',
-        contractAddress: collection?.contractAddress || '',
-      }
+    return {
+      owners: ownersCount,
+      name: collection?.name || '',
+      contractAddress: collection?.contractAddress || '',
+    };
   }
-
 }
