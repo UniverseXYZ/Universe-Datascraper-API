@@ -6,14 +6,21 @@ import {
   NFTCollectionDocument,
 } from './schema/nft-collection.schema';
 import { NFTTokenService } from '../nft-token/nft-token.service';
+<<<<<<< HEAD
 import { utils } from 'ethers';
+=======
+>>>>>>> 622750e (m-1355: Integrate total volume traded functionality in collections)
 
 @Injectable()
 export class NFTCollectionService {
   constructor(
     @InjectModel(NFTCollection.name)
     private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
+<<<<<<< HEAD
     private readonly nftTokenService: NFTTokenService,
+=======
+    private nftTokenService: NFTTokenService,
+>>>>>>> 622750e (m-1355: Integrate total volume traded functionality in collections)
   ) {}
 
   public async getCollectionsByAddress(
