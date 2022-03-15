@@ -20,8 +20,6 @@ export class NFTTokenOwnersService {
   async getTokensByOwnerAddress(
     ownerAddress: string,
     searchQuery: GetUserTokensDto,
-    page: number,
-    limit: number,
   ): Promise<{ tokenOwners: NFTTokenOwnerDocument[]; count: number }> {
     const query = {} as any;
 
@@ -37,15 +35,9 @@ export class NFTTokenOwnersService {
       query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
     }
 
-    if (searchQuery?.search) {
-      query.tokenName = { $regex: new RegExp(searchQuery.search, 'i') };
-    }
-
     const [tokenOwners, count] = await Promise.all([
       this.nftTokenOwnersModel
-        .find({ ...query })
-        .skip(page * limit)
-        .limit(limit),
+        .find({ ...query }),
       this.nftTokenOwnersModel.count({ ...query }),
     ]);
 
