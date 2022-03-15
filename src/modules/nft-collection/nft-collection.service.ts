@@ -47,7 +47,6 @@ export class NFTCollectionService {
    * @returns {Object}
    */
   public async getCollection(contractAddress: string) {
-    try {
       const checkedAddress = utils.getAddress(contractAddress);
       const collectionInfo = await this.getCollectionsByAddress([checkedAddress]);
       const collection = collectionInfo[0];
@@ -63,11 +62,6 @@ export class NFTCollectionService {
         name: collection?.name || '',
         contractAddress: collection?.contractAddress || '',
       }
-    } catch (e) {
-      console.log(e);
-      return {}
-    }
-
   }
 
 }
