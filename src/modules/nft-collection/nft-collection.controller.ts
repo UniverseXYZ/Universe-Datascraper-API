@@ -109,7 +109,7 @@ export class NFTCollectionController {
     return this.nftCollectionService.getCollectionsByAddress(collections);
   }
 
-  @Get('search')
+  @Get('search/collections')
   async search(@Query('search') search) {
     return this.nftCollectionService.searchCollections(search);
   }

@@ -35,7 +35,10 @@ export class NFTCollectionService {
     search: string,
   ): Promise<NFTCollectionDocument[]> {
     const collection = await this.nftCollectionsModel.find({
-      $or: [{ contractAddress: search }, { name: { $regex: search } }],
+      $or: [
+        { contractAddress: search },
+        { name: { $regex: new RegExp(search, 'i') } },
+      ],
     });
 
     return collection;
