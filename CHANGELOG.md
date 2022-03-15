@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.1.0...v1.1.1) (2022-03-15)
+
+
+### Bug Fixes
+
+* Handle cases where empty array was passed to mongodb. ([b9fab15](https://github.com/UniverseXYZ/Universe-Datascraper-API/commit/b9fab15712a05ad505f20ff17f19e6ea143dc487))
+
 # [1.1.0](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.0.0...v1.1.0) (2022-03-10)
 
 
