@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.1.1...v1.2.0) (2022-03-15)
+
+
+### Bug Fixes
+
+* remove try catch block ([d54ea73](https://github.com/UniverseXYZ/Universe-Datascraper-API/commit/d54ea73554f0da395e50728738f7863f42b993f0))
+
+
+### Features
+
+* Return collection address and name in getCollection method ([3a25998](https://github.com/UniverseXYZ/Universe-Datascraper-API/commit/3a25998c024632dd7f7032f74448c3b7f557484c))
+
 ## [1.1.1](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.1.0...v1.1.1) (2022-03-15)
 
 
