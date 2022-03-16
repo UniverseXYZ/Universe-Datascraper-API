@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
@@ -8,6 +8,7 @@ import { NFTTokenOwnerDocument } from '../nft-token-owners/schema/nft-token-owne
 
 @Injectable()
 export class NFTTokenService {
+  private readonly logger = new Logger(NFTTokenService.name);
   constructor(
     @InjectModel(NFTToken.name)
     private readonly nftTokensModel: Model<NFTTokensDocument>,
@@ -173,13 +174,35 @@ export class NFTTokenService {
 
   async getTokensDetailsByTokens(
     tokenOwners: NFTTokenOwnerDocument[],
+    searchQuery: GetUserTokensDto,
+    page: number,
+    limit: number,
   ): Promise<NFTTokensDocument[]> {
-    const query = tokenOwners.map((owner) => {
+    const query = {} as any;
+
+    if (searchQuery?.tokenType) {
+      query.tokenType = searchQuery.tokenType;
+    }
+
+    if (searchQuery?.tokenAddress) {
+      query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
+    }
+
+    if (searchQuery?.search) {
+      query['metadata.name'] = { $regex: new RegExp(searchQuery.search, 'i') };
+    }
+
+    query['$or'] = tokenOwners.map((owner) => {
       return {
         contractAddress: owner.contractAddress,
         tokenId: owner.tokenId,
       };
     });
-    return await this.nftTokensModel.find({ $or: query });
+
+    const tokens = await this.nftTokensModel
+      .find({ ...query })
+      .skip(page * limit)
+      .limit(limit);
+    return tokens;
   }
 }

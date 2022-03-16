@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaginationDto } from '../nft-token/dto/pagination.dto';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
@@ -11,6 +11,7 @@ import { ethers } from 'ethers';
 @Controller('users')
 @ApiTags('Users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
   constructor(
     private service: NFTTokenService,
     private transferService: NFTTransferService,
@@ -28,13 +29,8 @@ export class UsersController {
 
     // get records by address in token-owners collection
     const { tokenOwners, count } =
-      await this.ownersService.getTokensByOwnerAddress(
-        ownerDto.owner,
-        searchQuery,
-        pageNum,
-        limit,
-      );
-
+      await this.ownersService.getTokensByOwnerAddress(ownerDto.owner, searchQuery);
+    
     if (!tokenOwners.length) {
       return {
         page: pageNum,
@@ -45,7 +41,12 @@ export class UsersController {
     }
 
     const [tokens, owners] = await Promise.all([
-      this.service.getTokensDetailsByTokens(tokenOwners),
+      this.service.getTokensDetailsByTokens(
+        tokenOwners,
+        searchQuery,
+        pageNum,
+        limit,
+      ),
       this.ownersService.getOwners(tokenOwners),
     ]);
 
