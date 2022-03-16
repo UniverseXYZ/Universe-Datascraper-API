@@ -50,19 +50,4 @@ export class NFTTransferService {
       $or: [{ to: userAddress }, { from: userAddress }],
     });
   }
-
-
-  /**
-   * Returns total number of owners who owns at least 1 token in collection.
-   * @param contractAddress - collection address.
-   * @returns {Promise<number>}
-   */
-   public async getCollectionOwnersCount(contractAddress: string): Promise<number> {
-    
-    const owners = await this.nftTransferModel.distinct('to', {
-      contractAddress: utils.getAddress(contractAddress)
-    });
-
-    return owners.length;
-  }
 }
