@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.2.0...v1.2.1) (2022-03-16)
+
+
+### Bug Fixes
+
+* **collections:** Use new token owners collection to count collection owners ([fb0ee20](https://github.com/UniverseXYZ/Universe-Datascraper-API/commit/fb0ee2035c4c7374e9dbad1542984b30899ee3a9))
+
 # [1.2.0](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.1.1...v1.2.0) (2022-03-15)
 
 
