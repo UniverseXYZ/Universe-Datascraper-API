@@ -27,17 +27,17 @@ export class NFTTokenOwnersService {
       query.address = ownerAddress;
     }
 
-    if (searchQuery?.tokenType) {
-      query.tokenType = searchQuery.tokenType;
-    }
+    // if (searchQuery?.tokenType) {
+    //   query.tokenType = searchQuery.tokenType;
+    // }
+    query.tokenType = { $not: /^ERC1155/ };
 
     if (searchQuery?.tokenAddress) {
       query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
     }
 
     const [tokenOwners, count] = await Promise.all([
-      this.nftTokenOwnersModel
-        .find({ ...query }),
+      this.nftTokenOwnersModel.find({ ...query }),
       this.nftTokenOwnersModel.count({ ...query }),
     ]);
 
