@@ -30,7 +30,7 @@ export class NFTTokenOwnersService {
     // if (searchQuery?.tokenType) {
     //   query.tokenType = searchQuery.tokenType;
     // }
-    query.tokenType = 'ERC721';
+    query.tokenType = { $not: /^ERC1155/ };
 
     if (searchQuery?.tokenAddress) {
       query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
