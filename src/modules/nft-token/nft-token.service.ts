@@ -209,6 +209,7 @@ export class NFTTokenService {
 
     const tokens = await this.nftTokensModel
       .find({ ...query })
+      .sort({ updatedAt: -1 })
       .skip(page * limit)
       .limit(limit);
     return tokens;
