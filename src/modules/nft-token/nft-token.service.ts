@@ -122,10 +122,18 @@ export class NFTTokenService {
     contractAddress: string,
     tokenId: string,
   ): Promise<NFTTokensDocument> {
-    return await this.nftTokensModel.findOne({
+    const token = await this.nftTokensModel.findOne({
       contractAddress,
       tokenId,
     });
+
+    if (!token) {
+      throw new Error(
+        `Token not found. Collection: ${contractAddress}, tokenId: ${tokenId}`,
+      );
+    }
+
+    return token;
   }
 
   async getTokensByContract(

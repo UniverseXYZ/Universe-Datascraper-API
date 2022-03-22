@@ -60,7 +60,7 @@ export class NFTCollectionService {
     const collection = collectionInfo[0];
 
     if (!collection) {
-      // TODO:: if there is no such collection return 404
+      throw new Error(`Collection not found. Collection: ${checkedAddress}`);
     }
 
     const ownersCount = await this.getOwnersCount(checkedAddress);
