@@ -45,7 +45,11 @@ export class NFTTokenOwnersService {
     contractAddress: string,
     tokenId: string,
   ): Promise<NFTTokenOwnerDocument[]> {
-    return await this.nftTokenOwnersModel.find({ contractAddress, tokenId });
+    return await this.nftTokenOwnersModel.find({
+      contractAddress,
+      tokenId,
+      tokenType: { $not: /^ERC1155/ },
+    });
   }
 
   async getOwnersByTokens(
@@ -73,6 +77,7 @@ export class NFTTokenOwnersService {
   async getUserCollections(address: string) {
     return await this.nftTokenOwnersModel.distinct('contractAddress', {
       address: utils.getAddress(address),
+      tokenType: { $not: /^ERC1155/ },
     });
   }
 }
