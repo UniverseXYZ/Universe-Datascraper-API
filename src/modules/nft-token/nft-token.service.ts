@@ -144,6 +144,7 @@ export class NFTTokenService {
   ): Promise<NFTTokensDocument[]> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
+    find.tokenType = { $not: /^ERC1155/ };
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
     }
@@ -160,6 +161,7 @@ export class NFTTokenService {
   ): Promise<number> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
+    find.tokenType = { $not: /^ERC1155/ };
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
     }
