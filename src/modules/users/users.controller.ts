@@ -28,19 +28,21 @@ export class UsersController {
     const limit: number = paginationQuery.size ? paginationQuery.size : 10;
 
     // get records by address in token-owners collection
-    const { tokenOwners, count } =
-      await this.ownersService.getTokensByOwnerAddress(ownerDto.owner, searchQuery);
-    
+    const tokenOwners = await this.ownersService.getTokensByOwnerAddress(
+      ownerDto.owner,
+      searchQuery,
+    );
+
     if (!tokenOwners.length) {
       return {
         page: pageNum,
         size: limit,
-        total: count,
+        total: 0,
         data: [],
       };
     }
 
-    const [tokens, owners] = await Promise.all([
+    const [{ tokens, count }, owners] = await Promise.all([
       this.service.getTokensDetailsByTokens(
         tokenOwners,
         searchQuery,

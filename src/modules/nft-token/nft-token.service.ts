@@ -185,7 +185,7 @@ export class NFTTokenService {
     searchQuery: GetUserTokensDto,
     page: number,
     limit: number,
-  ): Promise<NFTTokensDocument[]> {
+  ) {
     const query = {} as any;
 
     if (searchQuery?.tokenType) {
@@ -212,6 +212,8 @@ export class NFTTokenService {
       .sort({ updatedAt: -1 })
       .skip(page * limit)
       .limit(limit);
-    return tokens;
+    const count = await this.nftTokensModel.count({ ...query });
+
+    return { tokens, count };
   }
 }
