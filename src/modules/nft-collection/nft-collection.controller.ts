@@ -94,11 +94,38 @@ export class NFTCollectionController {
     @Query('maxCount') maxCount: number,
     @Query('excludeTokenId') excludeTokenId: string,
   ) {
-    return this.nftTokenService.getMoreFromCollection(
+    const tokens = await this.nftTokenService.getMoreFromCollection(
       contract,
       excludeTokenId,
       maxCount,
     );
+
+    const owners = await this.nftTokenOwnersService.getOwnersByTokens(tokens);
+
+    const data = tokens.map((token) => {
+      const ownersInfo = owners.filter(
+        (owner) =>
+          owner.contractAddress === token.contractAddress &&
+          owner.tokenId === token.tokenId,
+      );
+      const ownerAddresses = ownersInfo.map((owner) => ({
+        owner: owner.address,
+        value: owner.value
+          ? owner.value.toString()
+          : ethers.BigNumber.from(owner.value).toString(),
+      }));
+      return {
+        contractAddress: token.contractAddress,
+        tokenId: token.tokenId,
+        tokenType: token.tokenType,
+        metadata: token.metadata,
+        externalDomainViewUrl: token.externalDomainViewUrl,
+        alternativeMediaFiles: token.alternativeMediaFiles,
+        owners: [...ownerAddresses],
+      };
+    });
+
+    return data;
   }
 
   @Get('user/:owner')
