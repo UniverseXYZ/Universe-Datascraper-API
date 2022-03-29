@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.2.1...v1.2.2) (2022-03-29)
+
+
+### Bug Fixes
+
+* **collections:** Return owners from more from this collection ([98858b8](https://github.com/UniverseXYZ/Universe-Datascraper-API/commit/98858b8f2b6edc528df5ef6ec66c16653ec504f4))
+
 ## [1.2.1](https://github.com/UniverseXYZ/Universe-Datascraper-API/compare/v1.2.0...v1.2.1) (2022-03-16)
 
 
