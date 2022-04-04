@@ -31,7 +31,7 @@
     "@nestjs/terminus": "^8.0.4",
     "class-transformer": "0.5.1",
     "class-validator": "^0.13.2",
-    "datascraper-schema": "git+https://github.com/UniverseXYZ/Universe-Datascraper-Schema.git",
+    "datascraper-schema": "git+https://github.com/UniverseXYZ/Universe-Datascraper-Schema.git#dev",
     "ethers": "^5.5.4",
     "express-session": "^1.17.2",
     "helmet": "^5.0.1",
