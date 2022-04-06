@@ -68,7 +68,7 @@ jobs:
     - name: Adjusting datascraper-schema source
       run: |
         branchName=${{ env.BRANCH_NAME }}
-        if [ $branchName = 'universe-marketplace-v1.1.0' ]; then sed -i s/Universe-Datascraper-Schema.git#dev/Universe-Datascraper-Schema.git/g package.json ; fi
+        if [ $branchName = 'main' ]; then sed -i s/Universe-Datascraper-Schema.git#dev/Universe-Datascraper-Schema.git/g package.json ; fi
 
     - name: Build, tag and push the image
       env:
