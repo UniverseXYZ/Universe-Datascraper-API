@@ -3,6 +3,7 @@ WORKDIR /workdir
 
 COPY package.json package-lock.json ./
 RUN npm install
+RUN npm update datascraper-schema
 
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
