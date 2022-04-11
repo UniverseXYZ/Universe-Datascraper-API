@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - dev
+      - universe-v*
   pull_request:
     branches:
       - main
       - dev
+      - universe-v*
   workflow_dispatch:
 
 jobs:
