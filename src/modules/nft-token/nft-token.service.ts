@@ -235,23 +235,6 @@ export class NFTTokenService {
 
     const result = await this.nftTokensModel.find(filter, shape);
 
-    //TODO: remove this before merge
-
-    // const result = await this.nftTokensModel.aggregate([
-    //   {
-    //     $match: {
-    //       contractAddress: utils.getAddress(contractAddress),
-    //       'metadata.attributes': { $exists: true },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       attributes: '$metadata.attributes',
-    //     },
-    //   },
-    // ]);
-
     if (result.length) {
       const data = result
         .map((record) => record.metadata.attributes)
