@@ -85,10 +85,10 @@ export class NFTTokenController {
         param.tokenId,
       ),
     ]);
-    const ownerAddresses = tokenOwners.map((owner) => ({
-      owner: owner.address,
-      value: owner.value,
-    }));
+    // const ownerAddresses = tokenOwners.map((owner) => ({
+    //   owner: owner.address,
+    //   value: owner.value,
+    // }));
     return {
       contractAddress: token.contractAddress,
       tokenId: token.tokenId,
@@ -96,7 +96,7 @@ export class NFTTokenController {
       metadata: token.metadata,
       externalDomainViewUrl: token.externalDomainViewUrl,
       alternativeMediaFiles: token.alternativeMediaFiles,
-      owners: [...ownerAddresses],
+      owners: tokenOwners,
     };
   }
 

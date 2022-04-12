@@ -6,6 +6,8 @@ import {
   NFTToken,
   NFTTokenOwner,
   NFTTokenOwnerSchema,
+  NFTErc1155TokenOwner,
+  NFTErc1155TokenOwnerSchema,
   NFTTokensSchema,
   NFTTransferHistory,
   NFTTransferHistorySchema,
@@ -29,6 +31,9 @@ import { NFTCollectionService } from './nft-collection.service';
     ]),
     MongooseModule.forFeature([
       { name: NFTTokenOwner.name, schema: NFTTokenOwnerSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: NFTErc1155TokenOwner.name, schema: NFTErc1155TokenOwnerSchema },
     ]),
   ],
   controllers: [NFTCollectionController],

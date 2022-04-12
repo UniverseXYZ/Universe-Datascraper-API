@@ -4,12 +4,17 @@ import { NFTTokenOwnersService } from './nft-token-owners.service';
 import {
   NFTTokenOwner,
   NFTTokenOwnerSchema,
-} from './schema/nft-token-owners.schema';
+  NFTErc1155TokenOwner,
+  NFTErc1155TokenOwnerSchema,
+} from 'datascraper-schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: NFTTokenOwner.name, schema: NFTTokenOwnerSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: NFTErc1155TokenOwner.name, schema: NFTErc1155TokenOwnerSchema },
     ]),
   ],
   providers: [NFTTokenOwnersService],
