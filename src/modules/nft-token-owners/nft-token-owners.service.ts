@@ -6,6 +6,10 @@ import {
   NFTTokenOwner,
   NFTTokenOwnerDocument,
 } from './schema/nft-token-owners.schema';
+import {
+  NFTErc1155TokenOwner,
+  NFTErc1155TokenOwnerDocument,
+} from './schema/nft-erc1155-token-owners.schema';
 import { NFTTokensDocument } from '../nft-token/schema/nft-token.schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
 import { utils } from 'ethers';
@@ -15,6 +19,8 @@ export class NFTTokenOwnersService {
   constructor(
     @InjectModel(NFTTokenOwner.name)
     private readonly nftTokenOwnersModel: Model<NFTTokenOwnerDocument>,
+    @InjectModel(NFTErc1155TokenOwner.name)
+    private readonly nftErc1155TokenOwnersModel: Model<NFTErc1155TokenOwnerDocument>,
   ) {}
 
   async getTokensByOwnerAddress(
@@ -41,15 +47,41 @@ export class NFTTokenOwnersService {
     return tokenOwners;
   }
 
+  /**
+   * Returns token owners by collection address and token id.
+   * @param contractAddress
+   * @param tokenId
+   * @returns Promise<any[]> - array or owners.
+   */
   async getOwnersByContractAndTokenId(
     contractAddress: string,
     tokenId: string,
-  ): Promise<NFTTokenOwnerDocument[]> {
-    return await this.nftTokenOwnersModel.find({
-      contractAddress,
-      tokenId,
-      tokenType: { $not: /^ERC1155/ },
-    });
+  ): Promise<any[]> {
+    let value = [];
+
+    //first try to fetch owners from the nft-token-owners "table"
+    let owners = await this.nftTokenOwnersModel.find(
+      {
+        contractAddress: contractAddress,
+        tokenId: tokenId,
+      },
+      '-_id address value',
+    );
+    if (owners.length) {
+      value = owners;
+    } else {
+      //if found nothing, check out the nft-erc1155-token-owners "table"
+      owners = await this.nftErc1155TokenOwnersModel.find(
+        {
+          contractAddress: contractAddress,
+          tokenId: tokenId,
+        },
+        '-_id address value',
+      );
+      value = owners;
+    }
+
+    return value;
   }
 
   async getOwnersByTokens(

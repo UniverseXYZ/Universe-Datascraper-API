@@ -128,7 +128,6 @@ export class NFTTokenService {
     const token = await this.nftTokensModel.findOne({
       contractAddress,
       tokenId,
-      tokenType: { $not: /^ERC1155/ },
     });
 
     if (!token) {
