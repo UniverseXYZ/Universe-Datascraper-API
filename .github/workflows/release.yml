@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - universe-v*
 jobs:
   release:
     runs-on: ubuntu-latest

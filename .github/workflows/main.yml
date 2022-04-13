@@ -5,12 +5,12 @@ on:
     branches:
       - main
       - dev
-      - universe-marketplace-v1.0.1
+      - universe-v*
   pull_request:
     branches:
       - main
       - dev
-      - universe-marketplace-v1.0.1
+      - universe-v*
   workflow_dispatch:
 
 jobs:
