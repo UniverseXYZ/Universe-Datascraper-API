@@ -36,7 +36,6 @@ export class NFTTokenOwnersService {
     // if (searchQuery?.tokenType) {
     //   query.tokenType = searchQuery.tokenType;
     // }
-    query.tokenType = { $not: /^ERC1155/ };
 
     if (searchQuery?.tokenAddress) {
       query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
@@ -109,7 +108,6 @@ export class NFTTokenOwnersService {
   async getUserCollections(address: string) {
     return await this.nftTokenOwnersModel.distinct('contractAddress', {
       address: utils.getAddress(address),
-      tokenType: { $not: /^ERC1155/ },
     });
   }
 }
