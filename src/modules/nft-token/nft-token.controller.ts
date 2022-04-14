@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ethers } from 'ethers';
-import { NotFoundException } from '../../common/exception/NotFoundException';
+import { NotFoundException } from '../../common/exceptions/NotFoundException';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { GetSingleTokenDto } from './dto/get-single-token.dto';
 import { PaginationDto } from './dto/pagination.dto';
