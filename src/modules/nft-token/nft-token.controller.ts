@@ -7,9 +7,11 @@ import {
   Param,
   Put,
   Query,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ethers } from 'ethers';
+import { NotFoundException } from '../../common/exception/NotFoundException';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { GetSingleTokenDto } from './dto/get-single-token.dto';
 import { PaginationDto } from './dto/pagination.dto';
@@ -18,6 +20,8 @@ import { NFTTokenService } from './nft-token.service';
 @Controller('tokens')
 @ApiTags('Tokens')
 export class NFTTokenController {
+  logger = new Logger(this.constructor.name);
+
   constructor(
     private service: NFTTokenService,
     private nftTokenOwnersService: NFTTokenOwnersService,
@@ -84,7 +88,10 @@ export class NFTTokenController {
         param.contract,
         param.tokenId,
       ),
-    ]);
+    ]).catch((e) => {
+      this.logger.error(e);
+      throw new NotFoundException();
+    });
     // const ownerAddresses = tokenOwners.map((owner) => ({
     //   owner: owner.address,
     //   value: owner.value,

@@ -118,6 +118,13 @@ export class NFTTokenService {
     return await this.nftTokensModel.count({ ...query });
   }
 
+  /**
+   * Returns token data by contract address and token id.
+   * @param contractAddress
+   * @param tokenId
+   * @returns
+   * @throws {Error}
+   */
   async getToken(
     contractAddress: string,
     tokenId: string,
