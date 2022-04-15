@@ -16,7 +16,7 @@ export class NFTTokenService {
 
   async getTokens(page: number, limit: number): Promise<NFTTokensDocument[]> {
     return await this.nftTokensModel
-      .find({ tokenType: { $not: /^ERC1155/ } })
+      .find({})
       .skip(page * limit)
       .limit(limit);
   }
@@ -51,7 +51,6 @@ export class NFTTokenService {
     if (excludeTokenId) {
       query.tokenId = { $not: { $regex: excludeTokenId } };
     }
-    query.tokenType = { $not: /^ERC1155/ };
 
     const results = await this.nftTokensModel
       .find({ ...query })
@@ -79,7 +78,6 @@ export class NFTTokenService {
     // if (searchQuery?.tokenType) {
     //   query.tokenType = searchQuery.tokenType;
     // }
-    query.tokenType = { $not: /^ERC1155/ };
 
     if (searchQuery?.tokenAddress) {
       query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
@@ -108,7 +106,6 @@ export class NFTTokenService {
     // if (searchQuery?.tokenType) {
     //   query.tokenType = searchQuery.tokenType;
     // }
-    query.tokenType = { $not: /^ERC1155/ };
 
     if (searchQuery?.tokenAddress) {
       query.contractAddress = utils.getAddress(searchQuery.tokenAddress);
@@ -121,6 +118,13 @@ export class NFTTokenService {
     return await this.nftTokensModel.count({ ...query });
   }
 
+  /**
+   * Returns token data by contract address and token id.
+   * @param contractAddress
+   * @param tokenId
+   * @returns
+   * @throws {Error}
+   */
   async getToken(
     contractAddress: string,
     tokenId: string,
@@ -147,7 +151,6 @@ export class NFTTokenService {
   ): Promise<NFTTokensDocument[]> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
-    find.tokenType = { $not: /^ERC1155/ };
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
     }
@@ -164,7 +167,6 @@ export class NFTTokenService {
   ): Promise<number> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
-    find.tokenType = { $not: /^ERC1155/ };
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
     }
