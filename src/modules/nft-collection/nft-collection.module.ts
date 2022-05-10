@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   NFTCollection,
+  NFTCollectionAttributes,
+  NFTCollectionAttributesrSchema,
   NFTCollectionSchema,
   NFTToken,
   NFTTokenOwner,
@@ -29,6 +31,12 @@ import { NFTCollectionService } from './nft-collection.service';
     ]),
     MongooseModule.forFeature([
       { name: NFTTokenOwner.name, schema: NFTTokenOwnerSchema },
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: NFTCollectionAttributes.name,
+        schema: NFTCollectionAttributesrSchema,
+      },
     ]),
   ],
   controllers: [NFTCollectionController],

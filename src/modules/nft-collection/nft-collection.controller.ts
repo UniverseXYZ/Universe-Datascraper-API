@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Query, Logger, Patch } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ethers } from 'ethers';
 import { ContractAddressDto } from 'src/common/dto';
@@ -139,5 +139,15 @@ export class NFTCollectionController {
   @Get('search/collections')
   async search(@Query('search') search) {
     return this.nftCollectionService.searchCollections(search);
+  }
+
+  @Patch(':contract/attributes')
+  @ApiOperation({
+    summary: 'Update nft-collection-attributes',
+  })
+  async updateCollectionAttributes(@Param() params: ContractAddressDto) {
+    return this.nftCollectionService.updateCollectionAttributes(
+      params.contract,
+    );
   }
 }
