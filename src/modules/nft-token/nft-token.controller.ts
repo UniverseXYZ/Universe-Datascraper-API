@@ -92,10 +92,6 @@ export class NFTTokenController {
       this.logger.error(e);
       throw new NotFoundException();
     });
-    // const ownerAddresses = tokenOwners.map((owner) => ({
-    //   owner: owner.address,
-    //   value: owner.value,
-    // }));
     return {
       contractAddress: token.contractAddress,
       tokenId: token.tokenId,
