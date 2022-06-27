@@ -5,11 +5,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import {
   NFTTokenOwner,
   NFTTokenOwnerDocument,
-} from './schema/nft-token-owners.schema';
-import {
   NFTErc1155TokenOwner,
   NFTErc1155TokenOwnerDocument,
-} from './schema/nft-erc1155-token-owners.schema';
+} from 'datascraper-schema';
 import { NFTTokensDocument } from '../nft-token/schema/nft-token.schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
 import { utils } from 'ethers';
