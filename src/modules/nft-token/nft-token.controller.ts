@@ -16,6 +16,7 @@ import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.serv
 import { GetSingleTokenDto } from './dto/get-single-token.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { NFTTokenService } from './nft-token.service';
+import { constants } from '../../common/constants';
 
 @Controller('tokens')
 @ApiTags('Tokens')
@@ -90,7 +91,7 @@ export class NFTTokenController {
       ),
     ]).catch((e) => {
       this.logger.error(e);
-      throw new NotFoundException();
+      throw new NotFoundException(constants.TOKEN_NOT_FOUND_ERROR);
     });
     return {
       contractAddress: token.contractAddress,
