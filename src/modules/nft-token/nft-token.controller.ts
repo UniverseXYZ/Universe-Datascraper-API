@@ -7,17 +7,22 @@ import {
   Param,
   Put,
   Query,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ethers } from 'ethers';
+import { NotFoundException } from '../../common/exceptions/NotFoundException';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { GetSingleTokenDto } from './dto/get-single-token.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { NFTTokenService } from './nft-token.service';
+import { constants } from '../../common/constants';
 
 @Controller('tokens')
 @ApiTags('Tokens')
 export class NFTTokenController {
+  logger = new Logger(this.constructor.name);
+
   constructor(
     private service: NFTTokenService,
     private nftTokenOwnersService: NFTTokenOwnersService,
@@ -84,11 +89,10 @@ export class NFTTokenController {
         param.contract,
         param.tokenId,
       ),
-    ]);
-    const ownerAddresses = tokenOwners.map((owner) => ({
-      owner: owner.address,
-      value: owner.value,
-    }));
+    ]).catch((e) => {
+      this.logger.error(e);
+      throw new NotFoundException(constants.TOKEN_NOT_FOUND_ERROR);
+    });
     return {
       contractAddress: token.contractAddress,
       tokenId: token.tokenId,
@@ -96,7 +100,7 @@ export class NFTTokenController {
       metadata: token.metadata,
       externalDomainViewUrl: token.externalDomainViewUrl,
       alternativeMediaFiles: token.alternativeMediaFiles,
-      owners: [...ownerAddresses],
+      owners: tokenOwners,
     };
   }
 
