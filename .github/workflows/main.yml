@@ -1,17 +1,20 @@
 name: Build
-
+# Trigger workflow on push/PR to main and tags beginning with dev* or alpha
 on:
   push:
     branches:
       - main
-      - dev
-      - universe-v*
+    tags:
+      - dev*
+      - alpha*
   pull_request:
     branches:
       - main
-      - dev
-      - universe-v*
   workflow_dispatch:
+
+env:
+  # we can not use secrets in if check, this is workaround
+  ECR_REPOSITORY_EXISTS: ${{ secrets.ECR_REPOSITORY != '' }}
 
 jobs:
   build:
@@ -33,7 +36,7 @@ jobs:
         color: warning
 
     - name: Get branch name (merge)
-      if: github.event_name != 'pull_request'
+      if: ${{ (github.event_name != 'pull_request') && (github.ref_type != 'tag') }}
       shell: bash
       run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
 
@@ -42,12 +45,17 @@ jobs:
       shell: bash
       run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF}/${GITHUB_REF#refs/pull/} | tr / -)" >> $GITHUB_ENV
 
+    - name: Get tag name
+      if: github.ref_type == 'tag'
+      shell: bash
+      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }})" >> $GITHUB_ENV
+
     - name: Set version
       id: vars
       shell: bash
       run: |
         branchName=${{ env.BRANCH_NAME }}
-        if [ $branchName = 'master' ]; then prefix=''; else prefix=$(echo "${branchName}-"); fi
+        prefix=$(echo "${branchName}-")
         echo "IMAGE_TAG=$(echo $prefix)$(echo ${GITHUB_SHA} | cut -c1-7)"  >> $GITHUB_ENV
 
     - name: Configure AWS credentials
@@ -61,6 +69,11 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
+    - name: Save ECR registry to env
+      shell: bash
+      run: |
+        echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
+
     - name: Echo image tag
       run: |
         echo "Version to set in deployment manifests: ${IMAGE_TAG}"
@@ -70,14 +83,21 @@ jobs:
         branchName=${{ env.BRANCH_NAME }}
         if [ $branchName = 'main' ]; then sed -i s/Universe-Datascraper-Schema.git#dev/Universe-Datascraper-Schema.git/g package.json ; fi
 
-    - name: Build, tag and push the image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: universe-datascraper-api
+    - name: Fetch Amazon ECR repo from secrets if exists
+      if: env.ECR_REPOSITORY_EXISTS == 'true'
+      run: echo "ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}" >> $GITHUB_ENV
+
+    - name: Fetch Amazon ECR repo from repo name
+      if: env.ECR_REPOSITORY_EXISTS == 'false'
+      shell: bash
       run: |
-        docker build \
-          -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}    \
-          ${GITHUB_WORKSPACE}
+        repoShortName=${GITHUB_REPOSITORY#*/}
+        repoShortNameLower=${repoShortName,,}
+        echo "ECR_REPOSITORY=${repoShortNameLower}" >> $GITHUB_ENV    
+    
+    - name: Build, tag and push the image
+      run: |
+        docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} ${GITHUB_WORKSPACE}
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
 
     - name: Notify Slack success
@@ -106,3 +126,44 @@ jobs:
       if: always()
       run: |
         docker logout ${{ steps.login-ecr.outputs.registry }}
+
+    # when a new release is created with tag starting with dev or alpha,
+    # CI will checkout eks-app repo, update img tag in corresponding environment overlay, and push
+    # this will trigger flux to upgrade pod, no manual step needed.
+    - name: Setup Kustomize
+      if: |
+        startsWith(github.ref_name, 'dev') ||
+        startsWith(github.ref_name, 'alpha')
+      uses: imranismail/setup-kustomize@v1
+
+    - name: Checkout kek-infrastructure-eks-app repo
+      if: |
+        startsWith(github.ref_name, 'dev') ||
+        startsWith(github.ref_name, 'alpha')
+      uses: actions/checkout@v3
+      with:
+        repository: UniverseXYZ/kek-infrastructure-eks-app
+        ref: main
+        token: ${{ secrets.GH_CI_PAT }} # GitHub CI Personal Access Token
+        path: kek-infrastructure-eks-app
+
+    - name: update image tag in dev namespace
+      if: startsWith(github.ref_name, 'dev')
+      shell: bash
+      run: |
+        cd kek-infrastructure-eks-app/universe-apps/environments/dev
+        kustomize edit set image ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+        git config --local user.email github-actions@github.com
+        git config --local user.name github-actions
+        git commit -am "[CI][${ECR_REPOSITORY}]update image tag to ${IMAGE_TAG}"
+        git push
+    - name: update image tag in alpha namespace
+      if: startsWith(github.ref_name, 'alpha')
+      shell: bash
+      run: |
+        cd kek-infrastructure-eks-app/universe-apps/environments/alpha
+        kustomize edit set image ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+        git config --local user.email github-actions@github.com
+        git config --local user.name github-actions
+        git commit -am "[CI][${ECR_REPOSITORY}]update image tag to ${IMAGE_TAG}"
+        git push
