@@ -33,6 +33,11 @@ export class NFTCollectionController {
   }
 
   @Get(':contract/tokens')
+  @ApiOperation({
+    summary: 'Search for a particular token in a given collection.',
+    description:
+      'The endpoint requires a contract address and searches by name and attributes',
+  })
   async getToken(
     @Param('contract') contract,
     @Query('page') page,
@@ -163,6 +168,8 @@ export class NFTCollectionController {
   @Patch(':contract/attributes')
   @ApiOperation({
     summary: 'Update nft-collection-attributes',
+    description: `This endpoint is being regulary called by a cronjob in order to insert or update the attributes for each token in a given collecion.
+       The newly created database collection is used by the nft-collection-controller (getTokens method) in order to get all the tokens that have a particular trait`,
   })
   async updateCollectionAttributes(@Param() params: ContractAddressDto) {
     return this.nftCollectionService.updateCollectionAttributes(
