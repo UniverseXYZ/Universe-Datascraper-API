@@ -9,9 +9,10 @@ import {
   Query,
   Logger,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ethers } from 'ethers';
 import { NotFoundException } from '../../common/exceptions/NotFoundException';
+import { ContractAddressDto } from 'src/common/dto';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { GetSingleTokenDto } from './dto/get-single-token.dto';
 import { PaginationDto } from './dto/pagination.dto';
@@ -79,6 +80,15 @@ export class NFTTokenController {
       total: count,
       data,
     };
+  }
+
+  @Get(':contract/token-attributes')
+  @ApiOperation({
+    summary: 'Get token attributes',
+  })
+  async getTokenAttributes(@Param() params: ContractAddressDto) {
+    const result = await this.service.getTokenAttributes(params.contract);
+    return result;
   }
 
   @Get(':contract/:tokenId')

@@ -1,10 +1,17 @@
-import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Query, Logger, Patch } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  NFTCollectionAttributes,
+  NFTCollectionAttributesDocument,
+} from 'datascraper-schema';
 import { ethers } from 'ethers';
 import { ContractAddressDto } from 'src/common/dto';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTCollectionService } from './nft-collection.service';
+import { Model } from 'mongoose';
+import { isEmpty } from 'lodash';
 
 @Controller('collections')
 @ApiTags('Collections')
@@ -14,6 +21,8 @@ export class NFTCollectionController {
     private nftTokenService: NFTTokenService,
     private nftCollectionService: NFTCollectionService,
     private nftTokenOwnersService: NFTTokenOwnersService,
+    @InjectModel(NFTCollectionAttributes.name)
+    readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
   ) {}
 
   @Get(':contract')
@@ -25,24 +34,40 @@ export class NFTCollectionController {
   }
 
   @Get(':contract/tokens')
-  async getToken(
-    @Param('contract') contract,
-    @Query('page') page,
-    @Query('size') size,
-    @Query('search') search,
-  ) {
+  @ApiOperation({
+    summary: 'Search for a particular token in a given collection.',
+    description:
+      'The endpoint requires a contract address and searches by name and attributes',
+  })
+  async getToken(@Param('contract') contract, @Query() query) {
+    const { page, size, search, ...traits } = query;
     const pageNum: number = page ? Number(page) - 1 : 0;
     const limit: number = size ? Number(size) : 10;
+
+    let tokenIds = null;
+
+    const canSearchByTraits =
+      !isEmpty(traits) &&
+      Object.values(traits).filter((type) => !!type).length !== 0;
+
+    if (canSearchByTraits) {
+      tokenIds =
+        await this.nftCollectionService.getTokenIdsByCollectionAttributes(
+          contract,
+          traits,
+        );
+    }
+
     const [tokens, count] = await Promise.all([
       this.nftTokenService.getTokensByContract(
         contract,
         pageNum,
         limit,
         search,
+        tokenIds,
       ),
-      this.nftTokenService.getCountByContract(contract, search),
+      this.nftTokenService.getCountByContract(contract, search, tokenIds),
     ]);
-
     if (!tokens.length) {
       return {
         page: pageNum,
@@ -51,9 +76,7 @@ export class NFTCollectionController {
         data: [],
       };
     }
-
     const owners = await this.nftTokenOwnersService.getOwnersByTokens(tokens);
-
     const data = tokens.map((token) => {
       const ownersInfo = owners.filter(
         (owner) =>
@@ -76,7 +99,6 @@ export class NFTCollectionController {
         owners: [...ownerAddresses],
       };
     });
-
     return {
       page: pageNum,
       size: limit,
@@ -139,5 +161,17 @@ export class NFTCollectionController {
   @Get('search/collections')
   async search(@Query('search') search) {
     return this.nftCollectionService.searchCollections(search);
+  }
+
+  @Patch(':contract/attributes')
+  @ApiOperation({
+    summary: 'Update nft-collection-attributes',
+    description: `This endpoint is being regulary called by a cronjob in order to insert or update the attributes for each token in a given collecion.
+       The newly created database collection is used by the nft-collection-controller (getTokens method) in order to get all the tokens that have a particular trait`,
+  })
+  async updateCollectionAttributes(@Param() params: ContractAddressDto) {
+    return this.nftCollectionService.updateCollectionAttributes(
+      params.contract,
+    );
   }
 }

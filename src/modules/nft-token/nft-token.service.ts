@@ -5,6 +5,10 @@ import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
 import { utils } from 'ethers';
 import { NFTTokenOwnerDocument } from 'datascraper-schema';
+import {
+  NFTCollectionAttributes,
+  NFTCollectionAttributesDocument,
+} from 'datascraper-schema';
 
 @Injectable()
 export class NFTTokenService {
@@ -12,6 +16,8 @@ export class NFTTokenService {
   constructor(
     @InjectModel(NFTToken.name)
     private readonly nftTokensModel: Model<NFTTokensDocument>,
+    @InjectModel(NFTCollectionAttributes.name)
+    readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
   ) {}
 
   async getTokens(page: number, limit: number): Promise<NFTTokensDocument[]> {
@@ -148,11 +154,16 @@ export class NFTTokenService {
     page: number,
     limit: number,
     search: string,
+    tokenIds: string[] | null,
   ): Promise<NFTTokensDocument[]> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
+    }
+
+    if (tokenIds?.length) {
+      find.tokenId = { $in: tokenIds };
     }
 
     return await this.nftTokensModel
@@ -164,11 +175,16 @@ export class NFTTokenService {
   async getCountByContract(
     contractAddress: string,
     search: string,
+    tokenIds: string[] | null,
   ): Promise<number> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
+    }
+
+    if (tokenIds?.length) {
+      find.tokenId = { $in: tokenIds };
     }
 
     return await this.nftTokensModel.count(find);
@@ -222,5 +238,18 @@ export class NFTTokenService {
     const count = await this.nftTokensModel.count({ ...query });
 
     return { tokens, count };
+  }
+
+  async getTokenAttributes(
+    contractAddress: string,
+  ): Promise<NFTCollectionAttributesDocument> {
+    const result = await this.nftCollectionAttributesModel.findOne(
+      {
+        contractAddress: utils.getAddress(contractAddress),
+      },
+      { attributes: 1, _id: 0 },
+    );
+
+    return result.attributes;
   }
 }
