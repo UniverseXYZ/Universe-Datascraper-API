@@ -115,38 +115,35 @@ export class NFTCollectionService {
 
           if (!traitsCounter[trait_type]) {
             traitsCounter[trait_type] = {};
-            if (!traitsCounter[trait_type][value]) {
-              traitsCounter[trait_type][value] = 1;
-            }
-          } else {
-            if (!traitsCounter[trait_type][value]) {
-              traitsCounter[trait_type][value] = 1;
-            } else {
-              traitsCounter[trait_type][value] += 1;
-            }
           }
+          if (!traitsCounter[trait_type][value]) {
+            traitsCounter[trait_type][value] = 0;
+          }
+          traitsCounter[trait_type][value] += 1;
         });
-
-      const attributes = Object.entries(traitsCounter).map((trait) => {
-        return {
-          traitType: trait[0],
-          traits: trait[1],
-        };
-      });
-
-      if (attributes.length) {
-        const nftCollection = {
-          contractAddress: collection,
-          attributes: attributes,
-        };
-
-        await this.nftCollectionAttributesModel.updateOne(
-          { contractAddress: collection },
-          { $set: nftCollection },
-          { upsert: true },
-        );
-      }
     } while (limit + offset < total);
+
+    const attributes = Object.entries(traitsCounter).map((trait) => {
+      return {
+        traitType: trait[0],
+        traits: trait[1],
+      };
+    });
+
+    if (attributes.length) {
+      const nftCollection = {
+        contractAddress: collection,
+        attributes: attributes,
+      };
+
+      await this.nftCollectionAttributesModel.updateOne(
+        { contractAddress: collection },
+        { $set: nftCollection },
+        { upsert: true },
+      );
+    }
+
+    return 'Finished';
   }
 
   /**
