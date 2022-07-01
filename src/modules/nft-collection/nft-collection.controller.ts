@@ -63,7 +63,7 @@ export class NFTCollectionController {
         search,
         tokenIds,
       ),
-      this.nftTokenService.getCountByContract(contract, search),
+      this.nftTokenService.getCountByContract(contract, search, tokenIds),
     ]);
     if (!tokens.length) {
       return {

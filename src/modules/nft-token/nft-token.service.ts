@@ -175,11 +175,16 @@ export class NFTTokenService {
   async getCountByContract(
     contractAddress: string,
     search: string,
+    tokenIds: string[] | null,
   ): Promise<number> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
+    }
+
+    if (tokenIds?.length) {
+      find.tokenId = { $in: tokenIds };
     }
 
     return await this.nftTokensModel.count(find);
