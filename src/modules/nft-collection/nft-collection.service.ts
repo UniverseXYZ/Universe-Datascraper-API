@@ -78,10 +78,12 @@ export class NFTCollectionService {
   }
 
   public async updateCollectionAttributes(contractAddress: string) {
-    const collection = utils.getAddress(contractAddress);
+    const collection = await this.nftCollectionsModel.findOne({
+      contractAddress: utils.getAddress(contractAddress),
+    });
 
     const total = await this.nftTokenModel.countDocuments({
-      contractAddress: collection,
+      contractAddress: collection.contractAddress,
     });
 
     const limit = 1000; //config
@@ -118,15 +120,18 @@ export class NFTCollectionService {
     }
 
     const nftCollection = {
-      contractAddress: collection,
+      contractAddress: collection.contractAddress,
       attributes: traits,
     };
 
     await this.nftCollectionAttributesModel.updateOne(
-      { contractAddress: collection },
+      { contractAddress: collection.contractAddress },
       { $set: nftCollection },
       { upsert: true },
     );
+
+    collection.attributesUpdated = true;
+    collection.save();
 
     return 'NFT collection attributes updated';
   }

@@ -17,6 +17,7 @@ import {
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTTransferService } from '../nft-transfer/nft-transfer.service';
+import { NftCollectionCronService } from './cron.service';
 import { NFTCollectionController } from './nft-collection.controller';
 import { NFTCollectionService } from './nft-collection.service';
 
@@ -50,6 +51,8 @@ import { NFTCollectionService } from './nft-collection.service';
     NFTTokenService,
     NFTTransferService,
     NFTTokenOwnersService,
+    NftCollectionCronService,
   ],
+  exports: [NftCollectionCronService],
 })
 export class NFTCollectionModule {}
