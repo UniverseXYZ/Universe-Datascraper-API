@@ -105,34 +105,35 @@ export class NFTCollectionService {
 
       offset += limit;
 
-      const attributes = tokens
+      const result = {};
+
+      tokens
         .map((record) => record.metadata.attributes)
         .flat()
-        .reduce((res, current) => {
-          const { trait_type, value } = current;
-          const duplicateTraitType = res.find(
-            (item) => item.trait_type === trait_type,
-          );
+        .forEach((trait) => {
+          const { trait_type, value } = trait;
 
-          if (!duplicateTraitType) {
-            return res.concat([{ trait_type: trait_type, value: [value] }]);
+          if (!result[trait_type]) {
+            result[trait_type] = {};
+
+            if (!result[trait_type][value]) {
+              result[trait_type][value] = 1;
+            }
           } else {
-            const uniqueTraits = res.map((item) => {
-              if (item.trait_type === trait_type) {
-                const resItemClone = { ...item };
-
-                resItemClone.value.push(value);
-                return resItemClone;
-              }
-              return item;
-            });
-
-            return uniqueTraits.map((item) => ({
-              ...item,
-              value: [...new Set(item.value)],
-            }));
+            if (!result[trait_type][value]) {
+              result[trait_type][value] = 1;
+            } else {
+              result[trait_type][value] += 1;
+            }
           }
-        }, []);
+        });
+
+      const attributes = Object.entries(result).map((trait) => {
+        return {
+          traitType: trait[0],
+          traits: trait[1],
+        };
+      });
 
       if (attributes.length) {
         const nftCollection = {
