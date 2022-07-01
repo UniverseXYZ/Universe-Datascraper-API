@@ -1,10 +1,16 @@
 import { Controller, Get, Param, Query, Logger, Patch } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  NFTCollectionAttributes,
+  NFTCollectionAttributesDocument,
+} from 'datascraper-schema';
 import { ethers } from 'ethers';
 import { ContractAddressDto } from 'src/common/dto';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTCollectionService } from './nft-collection.service';
+import { Model } from 'mongoose';
 
 @Controller('collections')
 @ApiTags('Collections')
@@ -14,6 +20,8 @@ export class NFTCollectionController {
     private nftTokenService: NFTTokenService,
     private nftCollectionService: NFTCollectionService,
     private nftTokenOwnersService: NFTTokenOwnersService,
+    @InjectModel(NFTCollectionAttributes.name)
+    readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
   ) {}
 
   @Get(':contract')
@@ -30,19 +38,33 @@ export class NFTCollectionController {
     @Query('page') page,
     @Query('size') size,
     @Query('search') search,
+    @Query('traits') traits,
+    @Query('types') types,
   ) {
     const pageNum: number = page ? Number(page) - 1 : 0;
     const limit: number = size ? Number(size) : 10;
+
+    let tokenIds = null;
+
+    if (traits && types) {
+      tokenIds =
+        await this.nftCollectionService.getTokenIdsByCollectionAttributes(
+          contract,
+          traits,
+          types,
+        );
+    }
+
     const [tokens, count] = await Promise.all([
       this.nftTokenService.getTokensByContract(
         contract,
         pageNum,
         limit,
         search,
+        tokenIds,
       ),
       this.nftTokenService.getCountByContract(contract, search),
     ]);
-
     if (!tokens.length) {
       return {
         page: pageNum,
@@ -51,9 +73,7 @@ export class NFTCollectionController {
         data: [],
       };
     }
-
     const owners = await this.nftTokenOwnersService.getOwnersByTokens(tokens);
-
     const data = tokens.map((token) => {
       const ownersInfo = owners.filter(
         (owner) =>
@@ -76,7 +96,6 @@ export class NFTCollectionController {
         owners: [...ownerAddresses],
       };
     });
-
     return {
       page: pageNum,
       size: limit,

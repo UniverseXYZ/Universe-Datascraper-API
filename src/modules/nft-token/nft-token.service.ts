@@ -154,11 +154,16 @@ export class NFTTokenService {
     page: number,
     limit: number,
     search: string,
+    tokenIds: string[] | null,
   ): Promise<NFTTokensDocument[]> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
+    }
+
+    if (tokenIds?.length) {
+      find.tokenId = { $in: tokenIds };
     }
 
     return await this.nftTokensModel

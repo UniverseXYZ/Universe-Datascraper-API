@@ -89,10 +89,8 @@ export class NFTCollectionService {
     let offset = 0;
 
     const filter = {
-      $and: [
-        { contractAddress: utils.getAddress(contractAddress) },
-        { 'metadata.attributes': { $exists: true, $ne: null } },
-      ],
+      contractAddress: utils.getAddress(contractAddress),
+      'metadata.attributes': { $exists: true, $ne: null },
     };
     const shape = { tokenId: 1, 'metadata.attributes': 1, _id: 0 };
 
@@ -133,6 +131,51 @@ export class NFTCollectionService {
     console.log((new Date().getTime() - start) / 1000);
 
     return 'NFT collection attributes updated';
+  }
+
+  public async getTokenIdsByCollectionAttributes(
+    contractAddress,
+    traits: string | string[],
+    types: string | string[],
+  ) {
+    // add traits and types to arrays and remove falsy values
+    const traitsArr = [traits].flat().filter((el) => !!el);
+    const typesArr = [types].flat().filter((el) => !!el);
+    if (
+      traitsArr.length &&
+      typesArr.length &&
+      traitsArr.length === typesArr.length
+    ) {
+      const allTraitsArray = traitsArr.map(
+        (trait, index) => `$attributes.${[trait]}.${typesArr[index]}`,
+      );
+
+      const filter = {
+        contractAddress: utils.getAddress(contractAddress),
+      };
+
+      const tokenIds = await this.nftCollectionAttributesModel.aggregate([
+        { $match: filter },
+        {
+          $project: {
+            tokens: {
+              $concatArrays: allTraitsArray,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            tokens: { $addToSet: '$tokens' },
+          },
+        },
+        { $unwind: '$tokens' },
+        { $unset: '_id' },
+      ]);
+
+      return tokenIds[0]?.tokens || [];
+    }
+    return [];
   }
 
   /**
