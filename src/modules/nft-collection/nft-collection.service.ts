@@ -11,6 +11,7 @@ import {
   NFTCollectionDocument,
   NFTToken,
 } from 'datascraper-schema';
+import { isEmpty } from 'lodash';
 
 @Injectable()
 export class NFTCollectionService {
@@ -90,29 +91,34 @@ export class NFTCollectionService {
     const filter = {
       $and: [
         { contractAddress: utils.getAddress(contractAddress) },
-        { 'metadata.attributes': { $exists: true } },
-        { 'metadata.attributes': { $ne: null } },
+        { 'metadata.attributes': { $exists: true, $ne: null } },
       ],
     };
     const shape = { tokenId: 1, 'metadata.attributes': 1, _id: 0 };
 
     const traits = {};
     do {
-      const tokenBatches = await this.nftTokenModel
+      const tokenBatch = await this.nftTokenModel
         .find(filter, shape)
         .limit(limit)
         .skip(offset);
 
       offset += limit;
 
-      tokenBatches.forEach(({ tokenId, metadata: { attributes } }) => {
-        attributes.forEach(({ trait_type, value }) => {
-          traits[trait_type] = traits[trait_type] || {};
-          traits[trait_type][value] = traits[trait_type][value] || [];
-          traits[trait_type][value].push(tokenId);
+      if (tokenBatch.length) {
+        tokenBatch.forEach(({ tokenId, metadata: { attributes } }) => {
+          attributes.forEach(({ trait_type, value }) => {
+            traits[trait_type] = traits[trait_type] || {};
+            traits[trait_type][value] = traits[trait_type][value] || [];
+            traits[trait_type][value].push(tokenId);
+          });
         });
-      });
+      }
     } while (limit + offset < total);
+
+    if (isEmpty(traits)) {
+      return "Collection doesn't have attributes";
+    }
 
     const nftCollection = {
       contractAddress: collection,
@@ -126,7 +132,7 @@ export class NFTCollectionService {
     );
     console.log((new Date().getTime() - start) / 1000);
 
-    return 'Finished';
+    return 'NFT collection attributes updated';
   }
 
   /**
