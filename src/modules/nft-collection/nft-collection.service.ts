@@ -97,6 +97,8 @@ export class NFTCollectionService {
     };
     const shape = { 'metadata.attributes': 1, _id: 0 };
 
+    const traitsCounter = {};
+
     do {
       tokens = await this.nftTokenModel
         .find(filter, shape)
@@ -105,30 +107,27 @@ export class NFTCollectionService {
 
       offset += limit;
 
-      const result = {};
-
       tokens
         .map((record) => record.metadata.attributes)
         .flat()
         .forEach((trait) => {
           const { trait_type, value } = trait;
 
-          if (!result[trait_type]) {
-            result[trait_type] = {};
-
-            if (!result[trait_type][value]) {
-              result[trait_type][value] = 1;
+          if (!traitsCounter[trait_type]) {
+            traitsCounter[trait_type] = {};
+            if (!traitsCounter[trait_type][value]) {
+              traitsCounter[trait_type][value] = 1;
             }
           } else {
-            if (!result[trait_type][value]) {
-              result[trait_type][value] = 1;
+            if (!traitsCounter[trait_type][value]) {
+              traitsCounter[trait_type][value] = 1;
             } else {
-              result[trait_type][value] += 1;
+              traitsCounter[trait_type][value] += 1;
             }
           }
         });
 
-      const attributes = Object.entries(result).map((trait) => {
+      const attributes = Object.entries(traitsCounter).map((trait) => {
         return {
           traitType: trait[0],
           traits: trait[1],
