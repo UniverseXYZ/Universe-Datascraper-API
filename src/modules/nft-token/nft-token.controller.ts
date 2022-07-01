@@ -9,7 +9,7 @@ import {
   Query,
   Logger,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ethers } from 'ethers';
 import { NotFoundException } from '../../common/exceptions/NotFoundException';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
@@ -79,6 +79,15 @@ export class NFTTokenController {
       total: count,
       data,
     };
+  }
+
+  @Get(':contract/token-attributes')
+  @ApiOperation({
+    summary: 'Get token attributes',
+  })
+  async getTokenAttributes(@Param('contract') contract) {
+    const result = await this.service.getTokenAttributes(contract);
+    return result;
   }
 
   @Get(':contract/:tokenId')
