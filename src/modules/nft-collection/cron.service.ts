@@ -30,65 +30,82 @@ export class NftCollectionCronService {
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   private async updateCollectionAttributes() {
-    const collection = await this.nftCollectionsModel.findOne({
-      attributesUpdated: false,
-    });
-    this.logger.log(
-      'Updating attributes for collection: ' + collection.contractAddress,
+    const collections = await this.nftCollectionsModel.find(
+      {
+        attributesUpdated: false,
+      },
+      {},
+      {
+        limit: 10,
+      },
     );
 
-    const total = await this.nftTokenModel.countDocuments({
-      contractAddress: collection.contractAddress,
-    });
+    for (const collection of collections) {
+      collection.attributesUpdated = true;
+      collection.save();
 
-    const limit = 1000; //config
-    let offset = 0;
+      const total = await this.nftTokenModel.countDocuments({
+        contractAddress: collection.contractAddress,
+      });
 
-    const filter = {
-      contractAddress: collection.contractAddress,
-      'metadata.attributes': { $exists: true, $ne: null },
-    };
-    const shape = { tokenId: 1, 'metadata.attributes': 1, _id: 0 };
+      const limit = 1000; //config
+      let offset = 0;
 
-    const traits = {};
-    do {
-      const tokenBatch = await this.nftTokenModel
-        .find(filter, shape)
-        .limit(limit)
-        .skip(offset);
+      try {
+        const filter = {
+          contractAddress: collection.contractAddress,
+          'metadata.attributes': { $exists: true, $ne: null },
+        };
+        const shape = { tokenId: 1, 'metadata.attributes': 1, _id: 0 };
 
-      offset += limit;
+        const traits = {};
+        do {
+          const tokenBatch = await this.nftTokenModel
+            .find(filter, shape)
+            .limit(limit)
+            .skip(offset);
 
-      if (tokenBatch.length) {
-        tokenBatch.forEach(({ tokenId, metadata: { attributes } }) => {
-          attributes.forEach(({ trait_type, value }) => {
-            traits[trait_type] = traits[trait_type] || {};
-            traits[trait_type][value] = traits[trait_type][value] || [];
-            traits[trait_type][value].push(tokenId);
-          });
-        });
+          offset += limit;
+
+          this.logger.log(
+            'Updating attributes for collection: ' + collection.contractAddress,
+          );
+
+          if (tokenBatch.length) {
+            tokenBatch.forEach(({ tokenId, metadata: { attributes } }) => {
+              attributes.forEach(({ trait_type, value }) => {
+                traits[trait_type] = traits[trait_type] || {};
+                traits[trait_type][value] = traits[trait_type][value] || [];
+                traits[trait_type][value].push(tokenId);
+              });
+            });
+          }
+        } while (limit + offset < total);
+
+        if (isEmpty(traits)) {
+          return "Collection doesn't have attributes";
+        }
+
+        const nftCollection = {
+          contractAddress: collection.contractAddress,
+          attributes: traits,
+        };
+
+        await this.nftCollectionAttributesModel.updateOne(
+          { contractAddress: collection.contractAddress },
+          { $set: nftCollection },
+          { upsert: true },
+        );
+
+        this.logger(
+          'NFT collection attributes updated ' + collection.contractAddress,
+        );
+      } catch (e) {
+        collection.attributesUpdated = false;
+        collection.save();
+
+        throw e;
       }
-    } while (limit + offset < total);
-
-    if (isEmpty(traits)) {
-      return "Collection doesn't have attributes";
     }
-
-    const nftCollection = {
-      contractAddress: collection.contractAddress,
-      attributes: traits,
-    };
-
-    await this.nftCollectionAttributesModel.updateOne(
-      { contractAddress: collection.contractAddress },
-      { $set: nftCollection },
-      { upsert: true },
-    );
-
-    collection.attributesUpdated = true;
-    collection.save();
-    this.logger(
-      'NFT collection attributes updated ' + collection.contractAddress,
-    );
   }
 }
