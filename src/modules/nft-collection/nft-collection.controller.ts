@@ -11,6 +11,7 @@ import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.serv
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTCollectionService } from './nft-collection.service';
 import { Model } from 'mongoose';
+import { isEmpty } from 'lodash';
 
 @Controller('collections')
 @ApiTags('Collections')
@@ -38,25 +39,22 @@ export class NFTCollectionController {
     description:
       'The endpoint requires a contract address and searches by name and attributes',
   })
-  async getToken(
-    @Param('contract') contract,
-    @Query('page') page,
-    @Query('size') size,
-    @Query('search') search,
-    @Query('traits') traits,
-    @Query('types') types,
-  ) {
+  async getToken(@Param('contract') contract, @Query() query) {
+    const { page, size, search, ...traits } = query;
     const pageNum: number = page ? Number(page) - 1 : 0;
     const limit: number = size ? Number(size) : 10;
 
     let tokenIds = null;
 
-    if (traits && types) {
+    const canSearchByTraits =
+      !isEmpty(traits) &&
+      Object.values(traits).filter((type) => !!type).length !== 0;
+
+    if (canSearchByTraits) {
       tokenIds =
         await this.nftCollectionService.getTokenIdsByCollectionAttributes(
           contract,
           traits,
-          types,
         );
     }
 

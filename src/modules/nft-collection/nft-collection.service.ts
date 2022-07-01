@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { utils } from 'ethers';
@@ -132,26 +132,24 @@ export class NFTCollectionService {
   }
 
   public async getTokenIdsByCollectionAttributes(
-    contractAddress,
-    traits: string | string[],
-    types: string | string[],
+    contractAddress: string,
+    traits: Record<string, string>,
   ) {
-    // add traits and types to arrays and remove falsy values
-    const traitsArr = [traits].flat().filter((el) => !!el);
-    const typesArr = [types].flat().filter((el) => !!el);
-    if (
-      traitsArr.length &&
-      typesArr.length &&
-      traitsArr.length === typesArr.length
-    ) {
-      const allTraitsArray = traitsArr.map(
-        (trait, index) => `$attributes.${[trait]}.${typesArr[index]}`,
-      );
+    const allTraitsArray = [];
 
-      const filter = {
-        contractAddress: utils.getAddress(contractAddress),
-      };
+    // construct fields for the database query
+    for (const trait in traits) {
+      traits[trait].split(',').forEach((type) => {
+        const field = `$attributes.${trait}.${type}`;
+        allTraitsArray.push(field);
+      });
+    }
 
+    const filter = {
+      contractAddress: utils.getAddress(contractAddress),
+    };
+
+    try {
       const tokenIds = await this.nftCollectionAttributesModel.aggregate([
         { $match: filter },
         {
@@ -172,8 +170,9 @@ export class NFTCollectionService {
       ]);
 
       return tokenIds[0]?.tokens || [];
+    } catch (error) {
+      throw new BadRequestException();
     }
-    return [];
   }
 
   /**
