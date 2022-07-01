@@ -78,7 +78,6 @@ export class NFTCollectionService {
   }
 
   public async updateCollectionAttributes(contractAddress: string) {
-    const start = new Date().getTime();
     const collection = utils.getAddress(contractAddress);
 
     const total = await this.nftTokenModel.countDocuments({
@@ -128,7 +127,6 @@ export class NFTCollectionService {
       { $set: nftCollection },
       { upsert: true },
     );
-    console.log((new Date().getTime() - start) / 1000);
 
     return 'NFT collection attributes updated';
   }
