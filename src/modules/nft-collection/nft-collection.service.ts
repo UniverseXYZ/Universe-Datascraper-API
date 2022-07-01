@@ -95,7 +95,8 @@ export class NFTCollectionService {
       ],
     };
     const shape = { tokenId: 1, 'metadata.attributes': 1, _id: 0 };
-    const tokens = [];
+
+    const traits = {};
     do {
       const tokenBatches = await this.nftTokenModel
         .find(filter, shape)
@@ -103,19 +104,15 @@ export class NFTCollectionService {
         .skip(offset);
 
       offset += limit;
-      tokens.push(tokenBatches);
-    } while (limit + offset < total);
 
-    const traits = tokens
-      .flat()
-      .reduce((acc, { tokenId, metadata: { attributes } }) => {
+      tokenBatches.forEach(({ tokenId, metadata: { attributes } }) => {
         attributes.forEach(({ trait_type, value }) => {
-          acc[trait_type] = acc[trait_type] || {};
-          acc[trait_type][value] = acc[trait_type][value] || [];
-          acc[trait_type][value].push(tokenId);
+          traits[trait_type] = traits[trait_type] || {};
+          traits[trait_type][value] = traits[trait_type][value] || [];
+          traits[trait_type][value].push(tokenId);
         });
-        return acc;
-      }, {});
+      });
+    } while (limit + offset < total);
 
     const nftCollection = {
       contractAddress: collection,
