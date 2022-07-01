@@ -85,7 +85,7 @@ export class NftCollectionCronService {
       { upsert: true },
     );
 
-    // collection.attributesUpdated = true;
+    collection.attributesUpdated = true;
     collection.save();
     this.logger(
       'NFT collection attributes updated ' + collection.contractAddress,
