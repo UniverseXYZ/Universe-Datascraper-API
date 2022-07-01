@@ -5,6 +5,10 @@ import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
 import { utils } from 'ethers';
 import { NFTTokenOwnerDocument } from 'datascraper-schema';
+import {
+  NFTCollectionAttributes,
+  NFTCollectionAttributesDocument,
+} from 'datascraper-schema';
 
 @Injectable()
 export class NFTTokenService {
@@ -12,6 +16,8 @@ export class NFTTokenService {
   constructor(
     @InjectModel(NFTToken.name)
     private readonly nftTokensModel: Model<NFTTokensDocument>,
+    @InjectModel(NFTCollectionAttributes.name)
+    readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
   ) {}
 
   async getTokens(page: number, limit: number): Promise<NFTTokensDocument[]> {
@@ -224,50 +230,16 @@ export class NFTTokenService {
     return { tokens, count };
   }
 
-  async getTokenAttributes(contractAddress: string): Promise<any[]> {
-    const filter = {
-      $and: [
-        { contractAddress: utils.getAddress(contractAddress) },
-        { 'metadata.attributes': { $exists: true } },
-        { 'metadata.attributes': { $ne: null } },
-      ],
-    };
-    const shape = { 'metadata.attributes': 1, _id: 0 };
+  async getTokenAttributes(
+    contractAddress: string,
+  ): Promise<NFTCollectionAttributesDocument> {
+    const result = await this.nftCollectionAttributesModel.findOne(
+      {
+        contractAddress: utils.getAddress(contractAddress),
+      },
+      { attributes: 1, _id: 0 },
+    );
 
-    const result = await this.nftTokensModel.find(filter, shape);
-
-    if (result.length) {
-      const data = result
-        .map((record) => record.metadata.attributes)
-        .flat()
-        .reduce((res, current) => {
-          const { trait_type, value } = current;
-          const duplicateTraitType = res.find(
-            (item) => item.trait_type === trait_type,
-          );
-
-          if (!duplicateTraitType) {
-            return res.concat([{ trait_type: trait_type, value: [value] }]);
-          } else {
-            const uniqueTraits = res.map((item) => {
-              if (item.trait_type === trait_type) {
-                const resItemClone = { ...item };
-
-                resItemClone.value.push(value);
-                return resItemClone;
-              }
-              return item;
-            });
-
-            return uniqueTraits.map((item) => ({
-              ...item,
-              value: [...new Set(item.value)],
-            }));
-          }
-        }, []);
-      return data;
-    }
-
-    return result;
+    return result.attributes;
   }
 }
