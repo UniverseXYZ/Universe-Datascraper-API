@@ -77,6 +77,7 @@ export class NFTCollectionService {
   }
 
   public async updateCollectionAttributes(contractAddress: string) {
+    const start = new Date().getTime();
     const collection = utils.getAddress(contractAddress);
 
     const total = await this.nftTokenModel.countDocuments({
@@ -86,8 +87,6 @@ export class NFTCollectionService {
     const limit = 1000; //config
     let offset = 0;
 
-    let tokens = null;
-
     const filter = {
       $and: [
         { contractAddress: utils.getAddress(contractAddress) },
@@ -95,53 +94,40 @@ export class NFTCollectionService {
         { 'metadata.attributes': { $ne: null } },
       ],
     };
-    const shape = { 'metadata.attributes': 1, _id: 0 };
-
-    const traitsCounter = {};
-
+    const shape = { tokenId: 1, 'metadata.attributes': 1, _id: 0 };
+    const tokens = [];
     do {
-      tokens = await this.nftTokenModel
+      const tokenBatches = await this.nftTokenModel
         .find(filter, shape)
         .limit(limit)
         .skip(offset);
 
       offset += limit;
-
-      tokens
-        .map((record) => record.metadata.attributes)
-        .flat()
-        .forEach((trait) => {
-          const { trait_type, value } = trait;
-
-          if (!traitsCounter[trait_type]) {
-            traitsCounter[trait_type] = {};
-          }
-          if (!traitsCounter[trait_type][value]) {
-            traitsCounter[trait_type][value] = 0;
-          }
-          traitsCounter[trait_type][value] += 1;
-        });
+      tokens.push(tokenBatches);
     } while (limit + offset < total);
 
-    const attributes = Object.entries(traitsCounter).map((trait) => {
-      return {
-        traitType: trait[0],
-        traits: trait[1],
-      };
-    });
+    const traits = tokens
+      .flat()
+      .reduce((acc, { tokenId, metadata: { attributes } }) => {
+        attributes.forEach(({ trait_type, value }) => {
+          acc[trait_type] = acc[trait_type] || {};
+          acc[trait_type][value] = acc[trait_type][value] || [];
+          acc[trait_type][value].push(tokenId);
+        });
+        return acc;
+      }, {});
 
-    if (attributes.length) {
-      const nftCollection = {
-        contractAddress: collection,
-        attributes: attributes,
-      };
+    const nftCollection = {
+      contractAddress: collection,
+      attributes: traits,
+    };
 
-      await this.nftCollectionAttributesModel.updateOne(
-        { contractAddress: collection },
-        { $set: nftCollection },
-        { upsert: true },
-      );
-    }
+    await this.nftCollectionAttributesModel.updateOne(
+      { contractAddress: collection },
+      { $set: nftCollection },
+      { upsert: true },
+    );
+    console.log((new Date().getTime() - start) / 1000);
 
     return 'Finished';
   }
