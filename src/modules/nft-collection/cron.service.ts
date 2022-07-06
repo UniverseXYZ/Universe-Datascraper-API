@@ -97,7 +97,7 @@ export class NftCollectionCronService {
           { upsert: true },
         );
 
-        this.logger(
+        this.logger.log(
           'NFT collection attributes updated ' + collection.contractAddress,
         );
       } catch (e) {
