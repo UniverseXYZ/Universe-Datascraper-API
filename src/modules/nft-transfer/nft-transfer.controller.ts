@@ -39,7 +39,7 @@ export class NFTTransferController extends BaseController {
 
   @Get(':contract')
   @ApiOperation({
-    summary: 'Returns activity history for a collection.',
+    summary: 'Returns activity history for collection.',
   })
   @ApiQuery({
     name: 'history',

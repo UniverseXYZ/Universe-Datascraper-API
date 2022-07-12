@@ -54,9 +54,17 @@ export class NFTTransferService {
     });
   }
 
+  /**
+   * Returns activity (transfers) history for collection.
+   * Supports pagination.
+   * @param contractAddress
+   * @param history - ActivityHistoryEnum
+   * @param page
+   * @returns {Promise<any>} - an object with {page, size, total, data}
+   */
   public async getActivityHistory(
     contractAddress: string,
-    history: string,
+    history: ActivityHistoryEnum,
     page: number,
   ): Promise<any> {
     if (!constants.REGEX_ETHEREUM_ADDRESS.test(contractAddress)) {
