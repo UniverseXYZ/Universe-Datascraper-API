@@ -81,6 +81,7 @@ export class NFTTransferService {
       contractAddress: utils.getAddress(contractAddress.toLowerCase()),
     };
     const lookupSales: any = [];
+    const lookupSalesAfterPagination: any = [];
 
     switch (history) {
       case ActivityHistoryEnum.SALES:
@@ -121,7 +122,7 @@ export class NFTTransferService {
         break;
       case ActivityHistoryEnum.ALL:
       default:
-        lookupSales.push({
+        lookupSalesAfterPagination.push({
           $lookup: {
             from: constants.MARKETPLACE_ORDERS,
             localField: 'hash',
@@ -143,6 +144,7 @@ export class NFTTransferService {
         },
         { $skip: page * limit },
         { $limit: limit },
+        ...lookupSalesAfterPagination,
       ]),
       this.nftTransferModel.aggregate([
         {
