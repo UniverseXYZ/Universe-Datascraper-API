@@ -5,7 +5,7 @@ import {
   NFTTransferHistory,
   NFTTransferHistoryDocument,
 } from './schema/nft-transfer.schema';
-import { utils } from 'ethers';
+import { utils, constants as ethersConstants } from 'ethers';
 import { constants } from '../../common/constants';
 import { DatascraperException } from '../../common/exceptions/DatascraperException';
 import { ActivityHistoryEnum } from '../../common/constants/enums';
@@ -100,11 +100,11 @@ export class NFTTransferService {
         });
         break;
       case ActivityHistoryEnum.MINTS:
-        transferFilter.from = constants.ZERO_ADDRESS;
+        transferFilter.from = ethersConstants.AddressZero;
         break;
       case ActivityHistoryEnum.TRANSFERS:
         transferFilter.from = {
-          $ne: constants.ZERO_ADDRESS,
+          $ne: ethersConstants.AddressZero,
         };
         lookupSales.push({
           $lookup: {

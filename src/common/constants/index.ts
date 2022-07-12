@@ -1,8 +1,6 @@
 export const constants = {
   REGEX_ETHEREUM_ADDRESS: /^0x[a-fA-F0-9]{40}$/,
 
-  ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
-
   DEFAULT_PAGE_SIZE: 10,
 
   MARKETPLACE_ORDERS: 'marketplace-orders',
