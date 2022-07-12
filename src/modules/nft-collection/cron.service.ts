@@ -25,10 +25,10 @@ export class NftCollectionCronService {
   ) {
     this.logger = new Logger(this.constructor.name);
 
-    // this.updateCollectionAttributes();
+    this.updateCollectionAttributes();
   }
 
-  // @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   private async updateCollectionAttributes() {
     const collections = await this.nftCollectionsModel.find(
       {
