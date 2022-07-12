@@ -50,7 +50,7 @@ export class NFTTransferController extends BaseController {
   })
   async getActivityHistory(
     @Param('contract') contract: string,
-    @Query('history') history: string,
+    @Query('history') history: ActivityHistoryEnum,
     @Query('page') page: string,
   ) {
     try {

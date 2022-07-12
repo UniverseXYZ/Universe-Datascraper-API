@@ -119,6 +119,7 @@ export class NFTTransferService {
           },
         });
         break;
+      case ActivityHistoryEnum.ALL:
       default:
         lookupSales.push({
           $lookup: {
