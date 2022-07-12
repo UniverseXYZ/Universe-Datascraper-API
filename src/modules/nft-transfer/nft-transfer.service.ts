@@ -6,6 +6,9 @@ import {
   NFTTransferHistoryDocument,
 } from './schema/nft-transfer.schema';
 import { utils } from 'ethers';
+import { constants } from '../../common/constants';
+import { DatascraperException } from '../../common/exceptions/DatascraperException';
+import { ActivityHistoryEnum } from '../../common/constants/enums';
 
 @Injectable()
 export class NFTTransferService {
@@ -14,7 +17,7 @@ export class NFTTransferService {
     private readonly nftTransferModel: Model<NFTTransferHistoryDocument>,
   ) {}
 
-  async getTransferByTokenId(
+  public async getTransferByTokenId(
     contractAddress: string,
     tokenId: string,
     page: number,
@@ -26,14 +29,14 @@ export class NFTTransferService {
       .limit(limit);
   }
 
-  async getCountByTokenId(
+  public async getCountByTokenId(
     contractAddress: string,
     tokenId: string,
   ): Promise<number> {
     return await this.nftTransferModel.count({ contractAddress, tokenId });
   }
 
-  async getTransferByUserAddress(
+  public async getTransferByUserAddress(
     userAddress: string,
     page: number,
     limit: number,
@@ -45,9 +48,107 @@ export class NFTTransferService {
       .limit(limit);
   }
 
-  async getCountByUserAddress(userAddress: string): Promise<number> {
+  public async getCountByUserAddress(userAddress: string): Promise<number> {
     return await this.nftTransferModel.count({
       $or: [{ to: userAddress }, { from: userAddress }],
     });
+  }
+
+  public async getActivityHistory(
+    contractAddress: string,
+    history: string,
+    page: number,
+  ): Promise<any> {
+    if (!constants.REGEX_ETHEREUM_ADDRESS.test(contractAddress)) {
+      throw new DatascraperException(constants.INVALID_CONTRACT_ADDRESS);
+    }
+    if (!(<any>Object).values(ActivityHistoryEnum).includes(history)) {
+      throw new DatascraperException(constants.INVALID_HISTORY);
+    }
+
+    const limit = constants.DEFAULT_PAGE_SIZE;
+    page = page > 1 ? page - 1 : 0;
+
+    const transferFilter: any = {
+      contractAddress: utils.getAddress(contractAddress.toLowerCase()),
+    };
+    const lookupSales: any = [];
+
+    switch (history) {
+      case ActivityHistoryEnum.SALES:
+        lookupSales.push({
+          $lookup: {
+            from: constants.MARKETPLACE_ORDERS,
+            localField: 'hash',
+            foreignField: 'matched_tx_hash',
+            as: 'sales',
+          },
+        });
+        lookupSales.push({
+          $match: {
+            sales: { $ne: [] },
+          },
+        });
+        break;
+      case ActivityHistoryEnum.MINTS:
+        transferFilter.from = constants.ZERO_ADDRESS;
+        break;
+      case ActivityHistoryEnum.TRANSFERS:
+        transferFilter.from = {
+          $ne: constants.ZERO_ADDRESS,
+        };
+        lookupSales.push({
+          $lookup: {
+            from: constants.MARKETPLACE_ORDERS,
+            localField: 'hash',
+            foreignField: 'matched_tx_hash',
+            as: 'sales',
+          },
+        });
+        lookupSales.push({
+          $match: {
+            sales: [],
+          },
+        });
+        break;
+      default:
+        lookupSales.push({
+          $lookup: {
+            from: constants.MARKETPLACE_ORDERS,
+            localField: 'hash',
+            foreignField: 'matched_tx_hash',
+            as: 'sales',
+          },
+        });
+        break;
+    }
+
+    const [activityHistory, count] = await Promise.all([
+      this.nftTransferModel.aggregate([
+        {
+          $match: transferFilter,
+        },
+        ...lookupSales,
+        {
+          $sort: { updatedAt: -1 },
+        },
+        { $skip: page * limit },
+        { $limit: limit },
+      ]),
+      this.nftTransferModel.aggregate([
+        {
+          $match: transferFilter,
+        },
+        ...lookupSales,
+        { $count: 'count' },
+      ]),
+    ]);
+
+    return {
+      page: page + 1,
+      size: limit,
+      total: count[0].count,
+      data: activityHistory,
+    };
   }
 }
