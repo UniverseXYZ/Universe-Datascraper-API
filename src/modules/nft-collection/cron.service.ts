@@ -42,7 +42,7 @@ export class NftCollectionCronService {
 
     for (const collection of collections) {
       collection.attributesUpdated = true;
-      collection.save();
+      await collection.save();
 
       const total = await this.nftTokenModel.countDocuments({
         contractAddress: collection.contractAddress,
@@ -71,15 +71,15 @@ export class NftCollectionCronService {
             'Updating attributes for collection: ' + collection.contractAddress,
           );
 
-          if (tokenBatch.length) {
-            tokenBatch.forEach(({ tokenId, metadata: { attributes } }) => {
+          tokenBatch.forEach(({ tokenId, metadata: { attributes } }) => {
+            if (attributes && Array.isArray(attributes)) {
               attributes.forEach(({ trait_type, value }) => {
                 traits[trait_type] = traits[trait_type] || {};
                 traits[trait_type][value] = traits[trait_type][value] || [];
                 traits[trait_type][value].push(tokenId);
               });
-            });
-          }
+            }
+          });
         } while (limit + offset < total);
 
         if (isEmpty(traits)) {
@@ -102,7 +102,7 @@ export class NftCollectionCronService {
         );
       } catch (e) {
         collection.attributesUpdated = false;
-        collection.save();
+        await collection.save();
 
         throw e;
       }

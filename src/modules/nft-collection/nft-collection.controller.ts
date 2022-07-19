@@ -1,12 +1,13 @@
 import { Controller, Get, Param, Query, Logger, Patch } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiParam } from '@nestjs/swagger';
 import {
   NFTCollectionAttributes,
   NFTCollectionAttributesDocument,
 } from 'datascraper-schema';
 import { ethers } from 'ethers';
 import { ContractAddressDto } from 'src/common/dto';
+import { BaseController } from '../../common/base.controller';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { NFTTokenService } from '../nft-token/nft-token.service';
 import { NFTCollectionService } from './nft-collection.service';
@@ -15,15 +16,16 @@ import { isEmpty } from 'lodash';
 
 @Controller('collections')
 @ApiTags('Collections')
-export class NFTCollectionController {
-  private readonly logger = new Logger(NFTCollectionController.name);
+export class NFTCollectionController extends BaseController {
   constructor(
     private nftTokenService: NFTTokenService,
     private nftCollectionService: NFTCollectionService,
     private nftTokenOwnersService: NFTTokenOwnersService,
     @InjectModel(NFTCollectionAttributes.name)
     readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
-  ) {}
+  ) {
+    super(NFTCollectionController.name);
+  }
 
   @Get(':contract')
   @ApiOperation({
@@ -173,5 +175,29 @@ export class NFTCollectionController {
     return this.nftCollectionService.updateCollectionAttributes(
       params.contract,
     );
+  }
+
+  @Patch(':contract/refresh')
+  @ApiOperation({
+    summary: `Put all tokens inside a collection into the pool of tokens requiring metadata refresh.`,
+    description: `This endpoint marks all tokens in a collection as needToRefresh = true which makes Metadata Producer to update these tokens\' metadata.
+      Note that there\'s no guarantee when exactly Metadata Producer will pick up and update the marked tokens.
+      It returns "OK" string if the DB operation has been successful.`,
+  })
+  @ApiParam({
+    name: 'contract',
+    description: 'Collection address.',
+    type: String,
+    required: true,
+  })
+  async refreshCollectionTokens(@Param() params: ContractAddressDto) {
+    try {
+      return await this.nftTokenService.refreshTokenDataByCollection(
+        params.contract,
+      );
+    } catch (e) {
+      this.logger.error(e);
+      this.errorResponse(e);
+    }
   }
 }
