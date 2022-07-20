@@ -3,12 +3,14 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
-import { utils } from 'ethers';
+import { ethers, utils } from 'ethers';
 import { NFTTokenOwnerDocument } from 'datascraper-schema';
 import {
   NFTCollectionAttributes,
   NFTCollectionAttributesDocument,
 } from 'datascraper-schema';
+import { constants } from '../../common/constants';
+import { DatascraperException } from '../../common/exceptions/DatascraperException';
 
 @Injectable()
 export class NFTTokenService {
@@ -201,6 +203,27 @@ export class NFTTokenService {
       { contractAddress, tokenId },
       { needToRefresh: true },
     );
+  }
+
+  /**
+   * Sets the needToRefresh property to true to all tokens of the passed collection.
+   * @param contractAddress
+   * @returns {Promise<string>}
+   */
+  public async refreshTokenDataByCollection(contractAddress: string) {
+    if (!constants.REGEX_ETHEREUM_ADDRESS.test(contractAddress)) {
+      throw new DatascraperException(constants.INVALID_CONTRACT_ADDRESS);
+    }
+
+    // waiting just in case to make sure the client knows if the request was successful.
+    await this.nftTokensModel.updateMany(
+      {
+        contractAddress: ethers.utils.getAddress(contractAddress.toLowerCase()),
+      },
+      { needToRefresh: true },
+    );
+
+    return 'OK';
   }
 
   async getTokensDetailsByTokens(
