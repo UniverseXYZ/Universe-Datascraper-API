@@ -28,7 +28,7 @@ export class NftCollectionCronService {
     this.updateCollectionAttributes();
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   private async updateCollectionAttributes() {
     const collections = await this.nftCollectionsModel.find(
       {
