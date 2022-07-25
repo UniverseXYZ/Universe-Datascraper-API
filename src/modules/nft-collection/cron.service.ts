@@ -15,6 +15,7 @@ import { isEmpty } from 'lodash';
 @Injectable()
 export class NftCollectionCronService {
   private logger;
+  private disableAggregation: boolean;
 
   constructor(
     private configService: ConfigService,
@@ -26,15 +27,19 @@ export class NftCollectionCronService {
     private readonly nftTokenModel: Model<NFTToken>,
   ) {
     this.logger = new Logger(this.constructor.name);
-
+    this.disableAggregation = JSON.parse(
+      this.configService.get('disableAggregation'),
+    );
+    this.logger.log(`Disable aggregation: ${this.disableAggregation}`);
     this.updateCollectionAttributes();
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
   private async updateCollectionAttributes() {
-    const disabled = JSON.parse(this.configService.get('disableAggregation'));
-
-    if (disabled) return;
+    if (this.disableAggregation) {
+      this.logger.log('Not executing aggregation.');
+      return;
+    }
 
     const collections = await this.nftCollectionsModel.find(
       {
