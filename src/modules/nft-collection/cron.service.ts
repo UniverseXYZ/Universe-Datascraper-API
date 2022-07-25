@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -16,6 +17,7 @@ export class NftCollectionCronService {
   private logger;
 
   constructor(
+    private configService: ConfigService,
     @InjectModel(NFTCollection.name)
     private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
     @InjectModel(NFTCollectionAttributes.name)
@@ -30,6 +32,10 @@ export class NftCollectionCronService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   private async updateCollectionAttributes() {
+    const disabled = JSON.parse(this.configService.get('disableAggregation'));
+
+    if (disabled) return;
+
     const collections = await this.nftCollectionsModel.find(
       {
         attributesUpdated: false,
