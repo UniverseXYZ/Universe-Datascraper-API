@@ -161,6 +161,12 @@ export class NFTTransferService {
                   },
                 },
               },
+              {
+                $project: {
+                  alternativeMediaFiles: 1,
+                  metadata: 1,
+                },
+              },
             ],
             as: 'metadata',
           },
