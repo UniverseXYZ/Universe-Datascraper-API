@@ -209,9 +209,10 @@ export class NFTTokenService {
    * Sets the needToRefresh property to true to all tokens of the passed collection.
    * @param contractAddress
    * @returns {Promise<string>}
+   * @throws {DatascraperException}
    */
   public async refreshTokenDataByCollection(contractAddress: string) {
-    if (!constants.REGEX_ETHEREUM_ADDRESS.test(contractAddress)) {
+    if (!ethers.utils.isAddress(contractAddress.toLowerCase())) {
       throw new DatascraperException(constants.INVALID_CONTRACT_ADDRESS);
     }
 
