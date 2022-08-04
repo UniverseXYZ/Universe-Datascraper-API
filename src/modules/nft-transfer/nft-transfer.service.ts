@@ -140,6 +140,32 @@ export class NFTTransferService {
         },
         ...lookupSales,
         {
+          $lookup: {
+            from: 'nft-tokens',
+            let: {
+              contractAddress: utils.getAddress(contractAddress),
+              tokenId: '$tokenId',
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: ['$tokenId', '$$tokenId'],
+                      },
+                      {
+                        $eq: ['$contractAddress', '$$contractAddress'],
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: 'metadata',
+          },
+        },
+        {
           $sort: { updatedAt: -1 },
         },
         { $skip: page * limit },
