@@ -143,7 +143,7 @@ export class NFTTransferService {
           $lookup: {
             from: 'nft-tokens',
             let: {
-              contractAddress: contractAddress,
+              contractAddress: utils.getAddress(contractAddress),
               tokenId: '$tokenId',
             },
             pipeline: [
