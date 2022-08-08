@@ -219,7 +219,7 @@ export class NFTTokenService {
    * @throws {DatascraperException}
    */
   public async refreshTokenDataByCollection(contractAddress: string) {
-    if (!ethers.utils.isAddress(contractAddress.toLowerCase())) {
+    if (!utils.isAddress(contractAddress.toLowerCase())) {
       throw new DatascraperException(constants.INVALID_CONTRACT_ADDRESS);
     }
 
