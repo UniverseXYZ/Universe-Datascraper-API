@@ -9,4 +9,6 @@ export const constants = {
   INVALID_CONTRACT_ADDRESS: 'Invalid contract address.',
   INVALID_HISTORY: 'Invalid history.',
   TOKEN_NOT_FOUND_ERROR: 'Token not found.',
+  CONTRACT_NOT_FOUND: 'Collection not found.',
+  COLLECTION_ALREADY_REFRESHED: 'The collection was recently refreshed.',
 };

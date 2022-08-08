@@ -1,25 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
-import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
-import { ethers, utils } from 'ethers';
-import { NFTTokenOwnerDocument } from 'datascraper-schema';
 import {
+  NFTToken,
+  NFTTokensDocument,
+  NFTCollection,
+  NFTCollectionDocument,
+  NFTTokenOwnerDocument,
   NFTCollectionAttributes,
   NFTCollectionAttributesDocument,
 } from 'datascraper-schema';
+import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
+import { utils } from 'ethers';
 import { constants } from '../../common/constants';
 import { DatascraperException } from '../../common/exceptions/DatascraperException';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NFTTokenService {
   private readonly logger = new Logger(NFTTokenService.name);
   constructor(
+    private configService: ConfigService,
     @InjectModel(NFTToken.name)
     private readonly nftTokensModel: Model<NFTTokensDocument>,
     @InjectModel(NFTCollectionAttributes.name)
     readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
+    @InjectModel(NFTCollection.name)
+    private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
   ) {}
 
   async getTokens(page: number, limit: number): Promise<NFTTokensDocument[]> {
@@ -212,16 +219,46 @@ export class NFTTokenService {
    * @throws {DatascraperException}
    */
   public async refreshTokenDataByCollection(contractAddress: string) {
-    if (!ethers.utils.isAddress(contractAddress.toLowerCase())) {
+    if (!utils.isAddress(contractAddress.toLowerCase())) {
       throw new DatascraperException(constants.INVALID_CONTRACT_ADDRESS);
     }
 
+    const checkSumAddress = utils.getAddress(contractAddress);
+
+    const collection = await this.nftCollectionsModel.findOne({
+      contractAddress: checkSumAddress,
+    });
+    if (!collection) {
+      throw new DatascraperException(constants.CONTRACT_NOT_FOUND);
+    }
+
+    if (collection.lastRefresh) {
+      const currentDate = new Date();
+      const nextAllowedRefreshDate = new Date();
+      nextAllowedRefreshDate.setDate(
+        collection.lastRefresh.getDate() +
+          this.configService.get('refreshDelayDays'),
+      );
+
+      if (currentDate < nextAllowedRefreshDate) {
+        throw new DatascraperException(constants.COLLECTION_ALREADY_REFRESHED);
+      }
+    }
     // waiting just in case to make sure the client knows if the request was successful.
     await this.nftTokensModel.updateMany(
       {
-        contractAddress: ethers.utils.getAddress(contractAddress.toLowerCase()),
+        contractAddress: checkSumAddress,
       },
       { needToRefresh: true },
+    );
+
+    await this.nftCollectionsModel.updateOne(
+      {
+        contractAddress: checkSumAddress,
+      },
+      {
+        lastRefresh: new Date(),
+      },
     );
 
     return 'OK';
