@@ -190,7 +190,7 @@ export class NFTTransferService {
     return {
       page: page + 1,
       size: limit,
-      total: count[0].count,
+      total: count[0]?.count || 0,
       data: activityHistory,
     };
   }
