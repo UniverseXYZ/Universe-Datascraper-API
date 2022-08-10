@@ -25,6 +25,7 @@ export class NFTTransferService {
   ): Promise<NFTTransferHistoryDocument[]> {
     return await this.nftTransferModel
       .find({ contractAddress, tokenId })
+      .sort({ blockNum: 1 })
       .skip(page * limit)
       .limit(limit);
   }
