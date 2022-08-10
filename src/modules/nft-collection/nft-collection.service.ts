@@ -74,6 +74,7 @@ export class NFTCollectionService {
       owners: ownersCount,
       name: collection?.name || '',
       contractAddress: collection?.contractAddress || '',
+      tokenType: collection?.tokenType || '',
     };
   }
 
