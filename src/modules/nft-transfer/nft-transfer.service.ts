@@ -139,7 +139,7 @@ export class NFTTransferService {
           $match: transferFilter,
         },
         {
-          $sort: { updatedAt: -1 },
+          $sort: { blockNum: -1 },
         },
         {
           $lookup: {
