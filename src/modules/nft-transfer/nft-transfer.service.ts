@@ -138,7 +138,9 @@ export class NFTTransferService {
         {
           $match: transferFilter,
         },
-        ...lookupSales,
+        {
+          $sort: { updatedAt: -1 },
+        },
         {
           $lookup: {
             from: 'nft-tokens',
@@ -171,11 +173,9 @@ export class NFTTransferService {
             as: 'metadata',
           },
         },
-        {
-          $sort: { updatedAt: -1 },
-        },
         { $skip: page * limit },
         { $limit: limit },
+        ...lookupSales,
         ...lookupSalesAfterPagination,
       ]),
       this.nftTransferModel.aggregate([
