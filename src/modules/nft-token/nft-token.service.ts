@@ -311,6 +311,6 @@ export class NFTTokenService {
       { attributes: 1, _id: 0 },
     );
 
-    return result.attributes;
+    return result?.attributes || [];
   }
 }
