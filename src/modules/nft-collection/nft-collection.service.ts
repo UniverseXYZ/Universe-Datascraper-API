@@ -36,6 +36,7 @@ export class NFTCollectionService {
       {
         contractAddress: 1,
         name: 1,
+        tokenType: 1,
         _id: 0,
       },
     );
