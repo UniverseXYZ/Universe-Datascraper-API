@@ -4,11 +4,3 @@ export enum ActivityHistoryEnum {
   MINTS = 'mints',
   TRANSFERS = 'transfers',
 }
-
-export enum OrderStatus {
-  CREATED,
-  PARTIALFILLED,
-  FILLED,
-  CANCELLED,
-  STALE,
-}

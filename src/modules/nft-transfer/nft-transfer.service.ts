@@ -8,7 +8,7 @@ import {
 import { utils, constants as ethersConstants } from 'ethers';
 import { constants } from '../../common/constants';
 import { DatascraperException } from '../../common/exceptions/DatascraperException';
-import { ActivityHistoryEnum, OrderStatus } from '../../common/constants/enums';
+import { ActivityHistoryEnum } from '../../common/constants/enums';
 
 @Injectable()
 export class NFTTransferService {
@@ -91,61 +91,33 @@ export class NFTTransferService {
             from: constants.MARKETPLACE_ORDERS,
             let: {
               matchedTxHash: '$hash',
-              tokenId: '$tokenId',
             },
             pipeline: [
               {
                 $match: {
-                  matchedTxHash: { $ne: null },
+                  matchedTxHash: { $type: 'array' },
                 },
               },
-              // {
-                // $match: {
-                //   $expr: {
-                //     $and: [
-                      // {
-                      //   $in: [
-                      //     '$status',
-                      //     [OrderStatus.FILLED, OrderStatus.PARTIALFILLED],
-                      //   ],
-                      // },
-                      // {
-                      //   $or: [
-                      //     {
-                      //       $and: [
-                      //         {$eq: ['$make.assetType.contract', contractAddress.toLowerCase()]},
-                      //         {$eq: ['$make.assetType.tokenId', '$$tokenId']},
-                      //       ],
-                      //     },
-                      //     {
-                      //       $and: [
-                      //         {$eq: ['$take.assetType.contract', contractAddress.toLowerCase()]},
-                      //         {$eq: ['$take.assetType.tokenId', '$$tokenId']},
-                      //       ],
-                      //     },
-                      //   ],
-                      // },
-              //       ],
-              //     },
-              //   },
-              // },
+              { $unwind: '$matchedTxHash' },
+              {
+                $addFields: {
+                  txData: { $objectToArray: '$matchedTxHash' },
+                },
+              },
+              {
+                $addFields: {
+                  txHash: { $first: '$txData' },
+                },
+              },
+              {
+                $addFields: {
+                  thatFreakingHash: '$txHash.k',
+                },
+              },
               {
                 $match: {
                   $expr: {
-                    $in: [
-                      '$$matchedTxHash',
-                      {
-                        $function: {
-                          body: function (x) {
-                            return Array.isArray(x)
-                              ? x.map((_) => Object.keys(_)[0])
-                              : [];
-                          },
-                          args: ['$matchedTxHash'],
-                          lang: 'js',
-                        },
-                      },
-                    ],
+                    $eq: ['$thatFreakingHash', '$$matchedTxHash'],
                   },
                 },
               },
@@ -175,26 +147,29 @@ export class NFTTransferService {
             pipeline: [
               {
                 $match: {
-                  matchedTxHash: { $ne: null },
+                  matchedTxHash: { $type: 'array' },
+                },
+              },
+              { $unwind: '$matchedTxHash' },
+              {
+                $addFields: {
+                  txData: { $objectToArray: '$matchedTxHash' },
+                },
+              },
+              {
+                $addFields: {
+                  txHash: { $first: '$txData' },
+                },
+              },
+              {
+                $addFields: {
+                  thatFreakingHash: '$txHash.k',
                 },
               },
               {
                 $match: {
                   $expr: {
-                    $in: [
-                      '$$matchedTxHash',
-                      {
-                        $function: {
-                          body: function (x) {
-                            return Array.isArray(x)
-                              ? x.map((_) => Object.keys(_)[0])
-                              : [];
-                          },
-                          args: ['$matchedTxHash'],
-                          lang: 'js',
-                        },
-                      },
-                    ],
+                    $eq: ['$thatFreakingHash', '$$matchedTxHash'],
                   },
                 },
               },
@@ -219,26 +194,29 @@ export class NFTTransferService {
             pipeline: [
               {
                 $match: {
-                  matchedTxHash: { $ne: null },
+                  matchedTxHash: { $type: 'array' },
+                },
+              },
+              { $unwind: '$matchedTxHash' },
+              {
+                $addFields: {
+                  txData: { $objectToArray: '$matchedTxHash' },
+                },
+              },
+              {
+                $addFields: {
+                  txHash: { $first: '$txData' },
+                },
+              },
+              {
+                $addFields: {
+                  thatFreakingHash: '$txHash.k',
                 },
               },
               {
                 $match: {
                   $expr: {
-                    $in: [
-                      '$$matchedTxHash',
-                      {
-                        $function: {
-                          body: function (x) {
-                            return Array.isArray(x)
-                              ? x.map((_) => Object.keys(_)[0])
-                              : [];
-                          },
-                          args: ['$matchedTxHash'],
-                          lang: 'js',
-                        },
-                      },
-                    ],
+                    $eq: ['$thatFreakingHash', '$$matchedTxHash'],
                   },
                 },
               },
@@ -250,67 +228,57 @@ export class NFTTransferService {
     }
 
     const [activityHistory, count] = await Promise.all([
-      this.nftTransferModel
-        .aggregate([
-          {
-            $match: transferFilter,
-          },
-          {
-            $sort: { blockNum: -1 },
-          },
-          ...lookupSales, // that goes before pagination!
-          { $skip: page * limit },
-          { $limit: limit },
-          {
-            $lookup: {
-              from: 'nft-tokens',
-              let: {
-                contractAddress: utils.getAddress(
-                  contractAddress.toLowerCase(),
-                ),
-                tokenId: '$tokenId',
-              },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $and: [
-                        {
-                          $eq: ['$tokenId', '$$tokenId'],
-                        },
-                        {
-                          $eq: ['$contractAddress', '$$contractAddress'],
-                        },
-                      ],
-                    },
-                  },
-                },
-                {
-                  $project: {
-                    alternativeMediaFiles: 1,
-                    metadata: 1,
-                  },
-                },
-              ],
-              as: 'metadata',
+      this.nftTransferModel.aggregate([
+        {
+          $match: transferFilter,
+        },
+        {
+          $sort: { blockNum: -1 },
+        },
+        ...lookupSales, // that goes before pagination!
+        { $skip: page * limit },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'nft-tokens',
+            let: {
+              contractAddress: utils.getAddress(contractAddress.toLowerCase()),
+              tokenId: '$tokenId',
             },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: ['$tokenId', '$$tokenId'],
+                      },
+                      {
+                        $eq: ['$contractAddress', '$$contractAddress'],
+                      },
+                    ],
+                  },
+                },
+              },
+              {
+                $project: {
+                  alternativeMediaFiles: 1,
+                  metadata: 1,
+                },
+              },
+            ],
+            as: 'metadata',
           },
-          ...lookupSalesAfterPagination,
-        ])
-        .option({
-          serializeFunctions: true,
-        }),
-      this.nftTransferModel
-        .aggregate([
-          {
-            $match: transferFilter,
-          },
-          ...lookupSales,
-          { $count: 'count' },
-        ])
-        .option({
-          serializeFunctions: true,
-        }),
+        },
+        ...lookupSalesAfterPagination,
+      ]),
+      this.nftTransferModel.aggregate([
+        {
+          $match: transferFilter,
+        },
+        ...lookupSales,
+        { $count: 'count' },
+      ]),
     ]);
 
     return {
