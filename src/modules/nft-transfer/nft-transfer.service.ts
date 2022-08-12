@@ -111,13 +111,13 @@ export class NFTTransferService {
               },
               {
                 $addFields: {
-                  thatFreakingHash: '$txHash.k',
+                  fHash: '$txHash.k',
                 },
               },
               {
                 $match: {
                   $expr: {
-                    $eq: ['$thatFreakingHash', '$$matchedTxHash'],
+                    $eq: ['$fHash', '$$matchedTxHash'],
                   },
                 },
               },
@@ -163,13 +163,13 @@ export class NFTTransferService {
               },
               {
                 $addFields: {
-                  thatFreakingHash: '$txHash.k',
+                  fHash: '$txHash.k',
                 },
               },
               {
                 $match: {
                   $expr: {
-                    $eq: ['$thatFreakingHash', '$$matchedTxHash'],
+                    $eq: ['$fHash', '$$matchedTxHash'],
                   },
                 },
               },
@@ -210,13 +210,13 @@ export class NFTTransferService {
               },
               {
                 $addFields: {
-                  thatFreakingHash: '$txHash.k',
+                  fHash: '$txHash.k',
                 },
               },
               {
                 $match: {
                   $expr: {
-                    $eq: ['$thatFreakingHash', '$$matchedTxHash'],
+                    $eq: ['$fHash', '$$matchedTxHash'],
                   },
                 },
               },
