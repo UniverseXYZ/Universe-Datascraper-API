@@ -233,7 +233,7 @@ export class NFTTransferService {
           $match: transferFilter,
         },
         {
-          $sort: { blockNum: -1 },
+          $sort: { blockNum: -1, tokenId: -1 },
         },
         ...lookupSales, // that goes before pagination!
         { $skip: page * limit },
