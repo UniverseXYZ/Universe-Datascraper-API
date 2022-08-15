@@ -52,6 +52,7 @@ export class NFTTransferController extends BaseController {
     @Param('contract') contract: string,
     @Query('history') history: ActivityHistoryEnum,
     @Query('page') page: string,
+    @Query('limit') limit: string,
   ) {
     try {
       history = history ? history : ActivityHistoryEnum.ALL;
@@ -59,6 +60,7 @@ export class NFTTransferController extends BaseController {
         contract,
         history,
         Number(page),
+        Number(limit),
       );
     } catch (e) {
       this.logger.error(e);
