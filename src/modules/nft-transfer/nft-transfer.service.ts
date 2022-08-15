@@ -61,12 +61,14 @@ export class NFTTransferService {
    * @param contractAddress
    * @param history - ActivityHistoryEnum
    * @param page
+   * @param limitSize
    * @returns {Promise<any>} - an object with {page, size, total, data}
    */
   public async getActivityHistory(
     contractAddress: string,
     history: ActivityHistoryEnum,
     page: number,
+    limitSize: number,
   ): Promise<any> {
     if (!constants.REGEX_ETHEREUM_ADDRESS.test(contractAddress)) {
       throw new DatascraperException(constants.INVALID_CONTRACT_ADDRESS);
@@ -75,7 +77,7 @@ export class NFTTransferService {
       throw new DatascraperException(constants.INVALID_HISTORY);
     }
 
-    const limit = constants.DEFAULT_PAGE_SIZE;
+    const limit = limitSize || constants.DEFAULT_PAGE_SIZE;
     page = page > 1 ? page - 1 : 0;
 
     const transferFilter: any = {
