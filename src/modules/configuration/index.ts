@@ -7,4 +7,6 @@ export default () => ({
   session_secret: process.env.SESSION_SECRET,
   disableAggregation: process.env.DISABLE_AGGREGATION || false,
   refreshDelayDays: process.env.REFRESH_DELAY_DAYS || 1,
+  skippingCounterLimit: process.env.SKIPPING_COUNTER_LIMIT,
+  queryLimit: process.env.QUERY_LIMIT,
 });

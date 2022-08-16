@@ -11,11 +11,15 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { isEmpty } from 'lodash';
+import { Utils } from 'src/utils';
 
 @Injectable()
 export class NftCollectionCronService {
-  private logger;
+  private logger: Logger;
   private disableAggregation: boolean;
+  private isProcessing = false;
+  private skippingCounter = 0;
+  private readonly queryLimit: number;
 
   constructor(
     private configService: ConfigService,
@@ -30,16 +34,38 @@ export class NftCollectionCronService {
     this.disableAggregation = JSON.parse(
       this.configService.get('disableAggregation'),
     );
+    this.queryLimit = Number(this.configService.get('queryLimit')) || 10;
     this.logger.log(`Disable aggregation: ${this.disableAggregation}`);
     this.updateCollectionAttributes();
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   private async updateCollectionAttributes() {
     if (this.disableAggregation) {
       this.logger.log('Not executing aggregation.');
       return;
     }
+
+    if (this.isProcessing) {
+      if (
+        this.skippingCounter <
+        Number(this.configService.get('skippingCounterLimit'))
+      ) {
+        this.skippingCounter++;
+        this.logger.log(
+          `Collection attributes update is in process, skipping (${this.skippingCounter}) ...`,
+        );
+      } else {
+        // when the counter reaches the limit, restart the pod.
+        this.logger.log(
+          `Skipping counter reached its limit. The process is not responsive, restarting...`,
+        );
+        Utils.shutdown();
+      }
+      return;
+    }
+
+    this.isProcessing = true;
 
     const collections = await this.nftCollectionsModel.find(
       {
@@ -47,8 +73,13 @@ export class NftCollectionCronService {
       },
       {},
       {
-        limit: 10,
+        sort: { updatedAt: 1 },
+        limit: this.queryLimit,
       },
+    );
+
+    this.logger.log(
+      `Fetched ${this.queryLimit} collections. Starting to update attributes...`,
     );
 
     for (const collection of collections) {
@@ -63,6 +94,9 @@ export class NftCollectionCronService {
       let offset = 0;
 
       try {
+        this.logger.log(
+          `Updating attributes for collection: ${collection.contractAddress} | Total NFTs: ${total}`,
+        );
         const filter = {
           contractAddress: collection.contractAddress,
           'metadata.attributes': { $exists: true, $ne: null },
@@ -77,11 +111,6 @@ export class NftCollectionCronService {
             .skip(offset);
 
           offset += limit;
-
-          this.logger.log(
-            'Updating attributes for collection: ' + collection.contractAddress,
-          );
-
           tokenBatch.forEach(({ tokenId, metadata: { attributes } }) => {
             if (attributes && Array.isArray(attributes)) {
               attributes.forEach(({ trait_type, value }) => {
@@ -94,7 +123,8 @@ export class NftCollectionCronService {
         } while (limit + offset < total);
 
         if (isEmpty(traits)) {
-          return "Collection doesn't have attributes";
+          this.logger.warn("Collection doesn't have attributes");
+          continue;
         }
 
         const nftCollection = {
@@ -111,9 +141,16 @@ export class NftCollectionCronService {
         this.logger.log(
           'NFT collection attributes updated ' + collection.contractAddress,
         );
+        this.isProcessing = false;
+        this.skippingCounter = 0;
       } catch (e) {
         collection.attributesUpdated = false;
         await collection.save();
+
+        this.logger.error(e);
+
+        this.isProcessing = false;
+        this.skippingCounter = 0;
 
         throw e;
       }
