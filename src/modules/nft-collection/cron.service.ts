@@ -144,13 +144,13 @@ export class NftCollectionCronService {
         this.isProcessing = false;
         this.skippingCounter = 0;
       } catch (e) {
+        this.isProcessing = false;
+        this.skippingCounter = 0;
+
         collection.attributesUpdated = false;
         await collection.save();
 
         this.logger.error(e);
-
-        this.isProcessing = false;
-        this.skippingCounter = 0;
 
         throw e;
       }
