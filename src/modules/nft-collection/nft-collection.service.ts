@@ -37,6 +37,7 @@ export class NFTCollectionService {
         contractAddress: 1,
         name: 1,
         tokenType: 1,
+        createdAtBlock: 1,
         _id: 0,
       },
     );
@@ -76,6 +77,7 @@ export class NFTCollectionService {
       name: collection?.name || '',
       contractAddress: collection?.contractAddress || '',
       tokenType: collection?.tokenType || '',
+      createdAtBlock: collection?.createdAtBlock || '',
     };
   }
 
