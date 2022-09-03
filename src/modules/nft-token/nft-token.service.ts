@@ -140,6 +140,26 @@ export class NFTTokenService {
     return token;
   }
 
+  async getMultipleTokens(
+    contractAddress: string,
+    tokenIds: string[],
+  ): Promise<NFTTokensDocument[]> {
+    const tokens = await this.nftTokensModel.find({
+      contractAddress,
+      tokenId: {
+        $in: tokenIds,
+      },
+    });
+
+    if (tokens.length == 0) {
+      throw new Error(
+        `No Tokens Found. Collection: ${contractAddress}, TokenIds: ${tokenIds}`,
+      );
+    }
+
+    return tokens;
+  }
+
   async getTokensByContract(
     contractAddress: string,
     page: number,

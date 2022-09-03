@@ -12,6 +12,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { ethers } from 'ethers';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { GetSingleTokenDto } from './dto/get-single-token.dto';
+import { GetMultipleTokenDto } from './dto/get-multiple-token.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { NFTTokenService } from './nft-token.service';
 
@@ -97,6 +98,27 @@ export class NFTTokenController {
       externalDomainViewUrl: token.externalDomainViewUrl,
       alternativeMediaFiles: token.alternativeMediaFiles,
       owners: [...ownerAddresses],
+    };
+  }
+
+  @Get(':contract/:tokenIds')
+  async getMultipleTokens(@Param() param: GetMultipleTokenDto) {
+    const tokens = await this.service.getMultipleTokens(
+      param.contract,
+      param.tokenIds,
+    );
+
+    const tokenData = tokens.map((token) => ({
+      contractAddress: token.contractAddress,
+      tokenId: token.tokenId,
+      tokenType: token.tokenType,
+      metadata: token.metadata,
+      externalDomainViewUrl: token.externalDomainViewUrl,
+      alternativeMediaFiles: token.alternativeMediaFiles,
+    }));
+
+    return {
+      tokenData,
     };
   }
 
