@@ -10,6 +10,8 @@ import {
   NFTCollection,
   NFTCollectionDocument,
   NFTToken,
+  NFTErc1155TokenOwner,
+  NFTErc1155TokenOwnerDocument,
 } from 'datascraper-schema';
 import { isEmpty } from 'lodash';
 
@@ -20,6 +22,8 @@ export class NFTCollectionService {
     private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
     @InjectModel(NFTTokenOwner.name)
     private readonly nftTokenOwnersModel: Model<NFTTokenOwnerDocument>,
+    @InjectModel(NFTErc1155TokenOwner.name)
+    private readonly nftErc1155TokenOwnersModel: Model<NFTErc1155TokenOwnerDocument>,
     @InjectModel(NFTCollectionAttributes.name)
     readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
     @InjectModel(NFTToken.name)
@@ -70,8 +74,17 @@ export class NFTCollectionService {
     if (!collection) {
       throw new Error(`Collection not found. Collection: ${checkedAddress}`);
     }
-
-    const ownersCount = await this.getOwnersCount(checkedAddress);
+    let ownersCount = 0;
+    switch (collection.tokenType) {
+      case 'ERC721':
+        ownersCount = await this.getERC721OwnersCount(checkedAddress);
+        break;
+      case 'ERC1155':
+        ownersCount = await this.getERC1155OwnersCount(checkedAddress);
+        break;
+      default:
+        break;
+    }
 
     return {
       owners: ownersCount,
@@ -187,14 +200,32 @@ export class NFTCollectionService {
   }
 
   /**
-   * Returns total number of owners who owns at least 1 token in collection.
+   * Returns total number of owners who owns at least 1 token in an ERC721 collection.
    * @param contractAddress - collection address.
    * @returns {Promise<number>}
    */
-  private async getOwnersCount(contractAddress: string): Promise<number> {
+  private async getERC721OwnersCount(contractAddress: string): Promise<number> {
     const uniqueOwners = await this.nftTokenOwnersModel.distinct('address', {
       contractAddress,
     });
+
+    return uniqueOwners.length;
+  }
+
+  /**
+   * Returns total number of owners who owns at least 1 token in an ERC1155 collection.
+   * @param contractAddress - collection address.
+   * @returns {Promise<number>}
+   */
+  private async getERC1155OwnersCount(
+    contractAddress: string,
+  ): Promise<number> {
+    const uniqueOwners = await this.nftErc1155TokenOwnersModel.distinct(
+      'address',
+      {
+        contractAddress,
+      },
+    );
 
     return uniqueOwners.length;
   }
