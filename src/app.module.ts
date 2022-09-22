@@ -11,6 +11,7 @@ import { NFTCollectionModule } from './modules/nft-collection/nft-collection.mod
 import { NFTTransferModule } from './modules/nft-transfer/nft-transfer.module';
 import { UsersModule } from './modules/users/users.module';
 import { NFTTokenOwnersModule } from './modules/nft-token-owners/nft-token-owners.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NFTTokenOwnersModule } from './modules/nft-token-owners/nft-token-owner
     NFTTransferModule,
     UsersModule,
     NFTTokenOwnersModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
   providers: [],

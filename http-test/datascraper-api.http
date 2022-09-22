@@ -25,6 +25,8 @@ Content-Type: application/json
   "tokenId": "8710"
 }
 
+### Get all token attributes for a given collection
+GET {{hostname}}/v1/tokens/{{contractAddress}}/token-attributes
 
 ### Get tokens by collection (default page number is 0 and page size is 10)
 GET {{hostname}}/v1/collections/{{contractAddress}}/tokens
@@ -35,6 +37,8 @@ GET {{hostname}}/v1/collections/{{contractAddress}}/tokens?page=1
 ### Get the first page of tokens by collection
 GET {{hostname}}/v1/collections/{{contractAddress}}/tokens?page=1&size=3
 
+### Insert (or update) token attributes for a given collection
+PATCH {{hostname}}/v1/collections/{{contractAddress}}/attributes
 
 ### Get transfers by token (default page number is 0 and page size is 10)
 GET {{hostname}}/v1/transfers/{{contractAddress}}/{{tokenId}}

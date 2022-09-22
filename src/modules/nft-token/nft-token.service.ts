@@ -1,17 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { NFTToken, NFTTokensDocument } from './schema/nft-token.schema';
+import {
+  NFTToken,
+  NFTTokensDocument,
+  NFTCollection,
+  NFTCollectionDocument,
+  NFTTokenOwnerDocument,
+  NFTCollectionAttributes,
+  NFTCollectionAttributesDocument,
+} from 'datascraper-schema';
 import { GetUserTokensDto } from '../nft-token/dto/get-user-tokens.dto';
 import { utils } from 'ethers';
-import { NFTTokenOwnerDocument } from 'datascraper-schema';
+import { constants } from '../../common/constants';
+import { DatascraperException } from '../../common/exceptions/DatascraperException';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NFTTokenService {
   private readonly logger = new Logger(NFTTokenService.name);
   constructor(
+    private configService: ConfigService,
     @InjectModel(NFTToken.name)
     private readonly nftTokensModel: Model<NFTTokensDocument>,
+    @InjectModel(NFTCollectionAttributes.name)
+    readonly nftCollectionAttributesModel: Model<NFTCollectionAttributesDocument>,
+    @InjectModel(NFTCollection.name)
+    private readonly nftCollectionsModel: Model<NFTCollectionDocument>,
   ) {}
 
   async getTokens(page: number, limit: number): Promise<NFTTokensDocument[]> {
@@ -148,11 +163,16 @@ export class NFTTokenService {
     page: number,
     limit: number,
     search: string,
+    tokenIds: string[] | null,
   ): Promise<NFTTokensDocument[]> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
+    }
+
+    if (tokenIds?.length) {
+      find.tokenId = { $in: tokenIds };
     }
 
     return await this.nftTokensModel
@@ -164,11 +184,16 @@ export class NFTTokenService {
   async getCountByContract(
     contractAddress: string,
     search: string,
+    tokenIds: string[] | null,
   ): Promise<number> {
     const find = {} as any;
     find.contractAddress = utils.getAddress(contractAddress);
     if (search) {
       find['metadata.name'] = { $regex: new RegExp(search, 'i') };
+    }
+
+    if (tokenIds?.length) {
+      find.tokenId = { $in: tokenIds };
     }
 
     return await this.nftTokensModel.count(find);
@@ -185,6 +210,58 @@ export class NFTTokenService {
       { contractAddress, tokenId },
       { needToRefresh: true },
     );
+  }
+
+  /**
+   * Sets the needToRefresh property to true to all tokens of the passed collection.
+   * @param contractAddress
+   * @returns {Promise<string>}
+   * @throws {DatascraperException}
+   */
+  public async refreshTokenDataByCollection(contractAddress: string) {
+    if (!utils.isAddress(contractAddress.toLowerCase())) {
+      throw new DatascraperException(constants.INVALID_CONTRACT_ADDRESS);
+    }
+
+    const checkSumAddress = utils.getAddress(contractAddress);
+
+    const collection = await this.nftCollectionsModel.findOne({
+      contractAddress: checkSumAddress,
+    });
+    if (!collection) {
+      throw new DatascraperException(constants.CONTRACT_NOT_FOUND);
+    }
+
+    if (collection.lastRefresh) {
+      const currentDate = new Date();
+      const nextAllowedRefreshDate = new Date();
+      nextAllowedRefreshDate.setDate(
+        collection.lastRefresh.getDate() +
+          this.configService.get('refreshDelayDays'),
+      );
+
+      if (currentDate < nextAllowedRefreshDate) {
+        throw new DatascraperException(constants.COLLECTION_ALREADY_REFRESHED);
+      }
+    }
+    // waiting just in case to make sure the client knows if the request was successful.
+    await this.nftTokensModel.updateMany(
+      {
+        contractAddress: checkSumAddress,
+      },
+      { needToRefresh: true },
+    );
+
+    await this.nftCollectionsModel.updateOne(
+      {
+        contractAddress: checkSumAddress,
+      },
+      {
+        lastRefresh: new Date(),
+      },
+    );
+
+    return 'OK';
   }
 
   async getTokensDetailsByTokens(
@@ -222,5 +299,18 @@ export class NFTTokenService {
     const count = await this.nftTokensModel.count({ ...query });
 
     return { tokens, count };
+  }
+
+  async getTokenAttributes(
+    contractAddress: string,
+  ): Promise<NFTCollectionAttributesDocument> {
+    const result = await this.nftCollectionAttributesModel.findOne(
+      {
+        contractAddress: utils.getAddress(contractAddress),
+      },
+      { attributes: 1, _id: 0 },
+    );
+
+    return result?.attributes || [];
   }
 }
