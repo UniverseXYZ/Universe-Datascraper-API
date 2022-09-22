@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { ContractAddressDto } from 'src/common/dto';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { NFTTokenService } from '../nft-token/nft-token.service';
+import { SearchCollectionParams } from './dto/search-collection.dto';
 import { NFTCollectionService } from './nft-collection.service';
 
 @Controller('collections')
@@ -137,7 +138,7 @@ export class NFTCollectionController {
   }
 
   @Get('search/collections')
-  async search(@Query('search') search) {
-    return this.nftCollectionService.searchCollections(search);
+  async search(@Query() params: SearchCollectionParams) {
+    return this.nftCollectionService.searchCollections(params);
   }
 }

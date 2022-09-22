@@ -11,6 +11,7 @@ import {
 } from '../nft-token/schema/nft-token.schema';
 import { utils } from 'ethers';
 import { NFTTokenOwner, NFTTokenOwnerDocument } from 'datascraper-schema';
+import { SearchCollectionParams } from './dto/search-collection.dto';
 
 @Injectable()
 export class NFTCollectionService {
@@ -36,15 +37,21 @@ export class NFTCollectionService {
     );
   }
 
-  public async searchCollections(
-    search: string,
-  ): Promise<NFTCollectionDocument[]> {
-    const collection = await this.nftCollectionsModel.find({
-      $or: [
-        { contractAddress: search },
-        { name: { $regex: new RegExp(search, 'i') } },
-      ],
-    });
+  public async searchCollections({
+    contractAddresses,
+    search,
+  }: SearchCollectionParams): Promise<NFTCollectionDocument[]> {
+    const filter = contractAddresses?.length
+      ? {
+          contractAddress: { $in: contractAddresses },
+        }
+      : {
+          $or: [
+            { contractAddress: search },
+            { name: { $regex: new RegExp(search, 'i') } },
+          ],
+        };
+    const collection = await this.nftCollectionsModel.find(filter);
 
     return collection;
   }
