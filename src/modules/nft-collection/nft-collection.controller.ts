@@ -10,6 +10,7 @@ import { ContractAddressDto } from 'src/common/dto';
 import { BaseController } from '../../common/base.controller';
 import { NFTTokenOwnersService } from '../nft-token-owners/nft-token-owners.service';
 import { NFTTokenService } from '../nft-token/nft-token.service';
+import { SearchCollectionParams } from './dto/search-collection.dto';
 import { NFTCollectionService } from './nft-collection.service';
 import { Model } from 'mongoose';
 import { isEmpty } from 'lodash';
@@ -161,8 +162,8 @@ export class NFTCollectionController extends BaseController {
   }
 
   @Get('search/collections')
-  async search(@Query('search') search) {
-    return this.nftCollectionService.searchCollections(search);
+  async search(@Query() params: SearchCollectionParams) {
+    return this.nftCollectionService.searchCollections(params);
   }
 
   @Patch(':contract/attributes')

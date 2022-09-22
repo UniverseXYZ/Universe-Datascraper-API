@@ -14,6 +14,7 @@ import {
   NFTErc1155TokenOwnerDocument,
 } from 'datascraper-schema';
 import { isEmpty } from 'lodash';
+import { SearchCollectionParams } from './dto/search-collection.dto';
 
 @Injectable()
 export class NFTCollectionService {
@@ -48,15 +49,21 @@ export class NFTCollectionService {
     );
   }
 
-  public async searchCollections(
-    search: string,
-  ): Promise<NFTCollectionDocument[]> {
-    const collection = await this.nftCollectionsModel.find({
-      $or: [
-        { contractAddress: search },
-        { name: { $regex: new RegExp(search, 'i') } },
-      ],
-    });
+  public async searchCollections({
+    contractAddresses,
+    search,
+  }: SearchCollectionParams): Promise<NFTCollectionDocument[]> {
+    const filter = contractAddresses?.length
+      ? {
+          contractAddress: { $in: contractAddresses },
+        }
+      : {
+          $or: [
+            { contractAddress: search },
+            { name: { $regex: new RegExp(search, 'i') } },
+          ],
+        };
+    const collection = await this.nftCollectionsModel.find(filter);
 
     return collection;
   }
